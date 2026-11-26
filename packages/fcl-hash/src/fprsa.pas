@@ -1147,7 +1147,7 @@ begin
 
   // "6.  If the leftmost 8emLen - emBits bits of the leftmost octet in
   //     maskedDB are not all equal to zero, error"
-  if MaskedDB^ and ($ff shl (EncodedBits and 7))>0 then
+  if ((EncodedBits and 7)>0) and ((MaskedDB^ and ($ff shl (EncodedBits and 7)))<>0) then
     exit(20220502210729);
 
   // "7.  Let dbMask = MGF(H, emLen - hLen - 1)."

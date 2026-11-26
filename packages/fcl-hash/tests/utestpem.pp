@@ -26,6 +26,7 @@ Type
     Procedure TestRSA_VerifyRejectsE3Forgery;
     Procedure TestPemFindTags;
     Procedure TestRSA_DecryptPadding;
+    Procedure TestRSA_PSSModulusSizes;
   end;
 
 implementation
@@ -388,6 +389,60 @@ begin
     RSAFree(PrivateRSA);
     RSAFree(PublicRSA);
   end;
+end;
+
+procedure TTestPEM.TestRSA_PSSModulusSizes;
+const
+  // 529-bit key: emBits 528 is a multiple of 8
+  Key529N = '0161BAAF8F719C03EABB548C95A81548D36D861649B90C2F4F3AF62E1AA9774525DD6221C7FBC537C80068C4AF70F32A870425D1596F7C03B5897180334EF2A6FEB349';
+  Key529E = '010001';
+  Key529D = '1F3EDB552366F19DA170857E8EBB5A947A7F36A6CA76BE1314953C5B548ED987CF7FF4E105201A1412222D0C599D44DE23EC23B874E073EEBEB426AB30EB8509C835';
+  Key529P = 'E0D9E7AC2B01587A4D177F2EBDBE675420F590637BB82C849C31961C5713F8477B';
+  Key529Q = '0192BB4BD05EF2483EDB1ACA84E978E2C25BD07B7FE916488F40874A90B97858930B';
+  Key529DP = '5231B5CBAD08D7E4154C5294AE8DECCDC7229D3E909A59C3BC29303B79E575EC03';
+  Key529DQ = '2AA5A2D5A1F84E2639D590749AB4AE6E9E826951964141D5C9A38A05E15E192319';
+  Key529QI = 'A141405E80DFDE8211F36831DF3F12ADA04573335A49CD7FE88F0984C46FCD0642';
+
+  procedure CheckKey(const aName, aN, aE, aD, aP, aQ, aDP, aDQ, aQI: String; aSaltLen: Integer);
+  var
+    Key: TX509RSAPrivateKey;
+    PrivateRSA, PublicRSA: TRSA;
+    HashFunc: TRSAHashFuncInfo;
+    Msg: AnsiString;
+    Signature: TBytes;
+    I: Integer;
+  begin
+    HashFunc.UseSHA256;
+    Key.InitWithHexStrings(aN,aE,aD,aP,aQ,aDP,aDQ,aQI);
+    RSACreate(PrivateRSA);
+    RSACreate(PublicRSA);
+    try
+      RSAInitFromX509PrivateKey(PrivateRSA,Key);
+      RsaInitFromPublicKey(PublicRSA,HexStrToString(aN),HexStrToString(aE));
+      Signature:=[];
+      SetLength(Signature,PrivateRSA.ModulusLen);
+      for I:=1 to 20 do
+        begin
+        Msg:='PSS message '+IntToStr(I);
+        AssertEquals(aName+' signature '+IntToStr(I),PrivateRSA.ModulusLen,
+                     RSASSA_PSS_Sign(PrivateRSA,PByte(Msg),Length(Msg),@HashFunc,@Signature[0],aSaltLen));
+        AssertEquals(aName+' signature '+IntToStr(I)+' verifies with its salt length',0,
+                     RSASSA_PSS_Verify(PublicRSA,PByte(Msg),Length(Msg),@HashFunc,@Signature[0],aSaltLen));
+        AssertEquals(aName+' signature '+IntToStr(I)+' verifies with automatic salt length',0,
+                     RSASSA_PSS_Verify(PublicRSA,PByte(Msg),Length(Msg),@HashFunc,@Signature[0],RSA_PSS_SaltLen_Auto));
+        Msg[1]:='p';
+        AssertTrue(aName+' signature '+IntToStr(I)+' does not verify another message',
+                   RSASSA_PSS_Verify(PublicRSA,PByte(Msg),Length(Msg),@HashFunc,@Signature[0],aSaltLen)<>0);
+        end;
+    finally
+      RSAFree(PrivateRSA);
+      RSAFree(PublicRSA);
+    end;
+  end;
+
+begin
+  CheckKey('529-bit key',Key529N,Key529E,Key529D,Key529P,Key529Q,Key529DP,Key529DQ,Key529QI,16);
+  CheckKey('512-bit key',SmallKeyN,SmallKeyE,SmallKeyD,SmallKeyP,SmallKeyQ,SmallKeyDP,SmallKeyDQ,SmallKeyQI,16);
 end;
 
 procedure TTestPEM.TestPemFindTags;
