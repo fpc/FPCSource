@@ -873,23 +873,59 @@ function Unicode2AnsiBuf(Source: PUnicodeChar; SourceLen: SizeInt; CodePage: TSy
   end;
 
 
-function LowerWideString(const s : WideString) : WideString;
+type
+  TWideCaseFunc = function(__wc:wint_t):wint_t;cdecl;
+
+function CaseWideString(const s : WideString; casefunc : TWideCaseFunc) : WideString;
   var
-    i : SizeInt;
+    i, len : SizeInt;
+    c : wint_t;
   begin
-    SetLength(result,length(s));
-    for i:=0 to length(s)-1 do
-      pwidechar(result)[i]:=WideChar(towlower(wint_t(s[i+1])));
+    len:=length(s);
+    SetLength(result,len);
+    i:=0;
+    while i<len do
+      begin
+        c:=wint_t(s[i+1]);
+{$ifdef linux}
+        { the C libraries of Linux hold every wchar_t as a Unicode code point, so a
+          surrogate pair is cased as one; a result outside the supplementary planes
+          leaves the pair as it was }
+        if (c>=$d800) and (c<=$dbff) and (i+1<len) and
+           (s[i+2]>=#$dc00) and (s[i+2]<=#$dfff) then
+          begin
+            c:=casefunc(((c-$d800) shl 10)+(wint_t(s[i+2])-$dc00)+$10000);
+            if (c>=$10000) and (c<=$10ffff) then
+              begin
+                pwidechar(result)[i]:=WideChar($d800+((c-$10000) shr 10));
+                pwidechar(result)[i+1]:=WideChar($dc00+((c-$10000) and $3ff));
+              end
+            else
+              begin
+                pwidechar(result)[i]:=s[i+1];
+                pwidechar(result)[i+1]:=s[i+2];
+              end;
+            inc(i,2);
+          end
+        else
+{$endif linux}
+          begin
+            pwidechar(result)[i]:=WideChar(casefunc(c));
+            inc(i);
+          end;
+      end;
+  end;
+
+
+function LowerWideString(const s : WideString) : WideString;
+  begin
+    result:=CaseWideString(s,@towlower);
   end;
 
 
 function UpperWideString(const s : WideString) : WideString;
-  var
-    i : SizeInt;
   begin
-    SetLength(result,length(s));
-    for i:=0 to length(s)-1 do
-      pwidechar(result)[i]:=WideChar(towupper(wint_t(s[i+1])));
+    result:=CaseWideString(s,@towupper);
   end;
 
 
