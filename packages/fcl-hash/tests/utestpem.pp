@@ -34,6 +34,7 @@ Type
     Procedure TestRSA_BlindedSignatureDeterministic;
     Procedure TestPemParseValidUntil;
     Procedure TestECC_LoadPublicKeyForms;
+    Procedure TestRSA_PublicKeyHexa;
   end;
 
 implementation
@@ -640,6 +641,31 @@ begin
   AssertEquals('Y of the compressed key',PointY,UpperCase(BytesToHexStr(Base64URL.Decode(Comp.Y64))));
   AssertEquals('Same thumbprint',Plain.ThumbPrint,Comp.ThumbPrint);
   AssertFalse('Key without public key not loaded',Load(KeyNoPublic).Ok);
+end;
+
+procedure TTestPEM.TestRSA_PublicKeyHexa;
+var
+  Modulus, Exponent, Hexa: AnsiString;
+  Raised: Boolean;
+begin
+  Hexa:='stale';
+  RsaPublicKeyToHexa(#1#2,#1#0#1,Hexa);
+  AssertEquals('Output is replaced','0100010102',Hexa);
+  RsaPublicKeyToHexa(#1#2,#3,Hexa);
+  AssertEquals('1-byte exponent padded to 3 bytes','0000030102',Hexa);
+  RsaPublicKeyToHexa(#1#2,#0#0#0#1#0#1,Hexa);
+  AssertEquals('Leading zeros of the exponent removed','0100010102',Hexa);
+  RsaPublicKeyFromHexa('0000030102',Modulus,Exponent);
+  AssertEquals('Exponent read back',#0#0#3,Exponent);
+  AssertEquals('Modulus read back',#1#2,Modulus);
+  Raised:=False;
+  try
+    RsaPublicKeyToHexa(#1#2,#1#0#0#1,Hexa);
+  except
+    on EHashUtil do
+      Raised:=True;
+  end;
+  AssertTrue('4-byte exponent raises EHashUtil',Raised);
 end;
 
 procedure TTestPEM.TestPemFindTags;

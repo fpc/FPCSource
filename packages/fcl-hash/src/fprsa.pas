@@ -92,7 +92,10 @@ type
 procedure RSACreate(out RSA: TRSA);
 procedure RSAFree(var RSA: TRSA);
 
+// Hex key format: the exponent as exactly 3 bytes, followed by the modulus.
+// Sets PublicKeyHexa; EHashUtil when the exponent does not fit in 3 bytes.
 procedure RsaPublicKeyToHexa(const Modulus, Exponent: AnsiString; var PublicKeyHexa: AnsiString);
+// Modulus and 3-byte exponent from the hex key format of RsaPublicKeyToHexa.
 procedure RsaPublicKeyFromHexa(const PublicKeyHexa: AnsiString; out Modulus, Exponent: AnsiString);
 procedure RsaInitFromPublicKey(var RSA: TRSA; const Modulus, Exponent: AnsiString); overload;
 procedure RSAInitFromPublicKey(var RSA: TRSA; const RSAPublicKey: TX509RSAPublicKey); overload;
@@ -265,8 +268,16 @@ end;
 
 procedure RsaPublicKeyToHexa(const Modulus, Exponent: AnsiString;
   var PublicKeyHexa: AnsiString);
+var
+  E: AnsiString;
 begin
-  PublicKeyHexa:=PublicKeyHexa+BytesToHexStr(Exponent)+BytesToHexStr(Modulus);
+  E:=Exponent;
+  while (Length(E)>0) and (E[1]=#0) do
+    Delete(E,1,1);
+  if Length(E)>3 then
+    raise EHashUtil.CreateFmt('RSA exponent of %d bytes does not fit the 3 byte hex key format',[Length(E)]);
+  E:=StringOfChar(#0,3-Length(E))+E;
+  PublicKeyHexa:=BytesToHexStr(E)+BytesToHexStr(Modulus);
 end;
 
 procedure RsaPublicKeyFromHexa(const PublicKeyHexa: AnsiString; out Modulus, Exponent: AnsiString);
