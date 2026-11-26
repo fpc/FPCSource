@@ -679,13 +679,15 @@ begin
       end;
     ASN1_BITSTR:
       begin
+        if ASNSize < 1 then
+          raise EHashUtil.Create('20261127100000');
         AppendStringToBuffer(Output, ' BITSTR: len='+IntToStr(ASNSize)+' TrailBits='+IntToStr(Ord(Buffer^))+' ');
         Inc(Buffer); // this is the Trailing Length in bits
         Dec(ASNSize);
         OldBuffer:=Buffer;
         BufToString(S);
         OutputHexa(Output, S);
-        if (ASNType = ASN1_BITSTR) and (OldBuffer^ = ASN1_SEQ) then
+        if (ASNType = ASN1_BITSTR) and (ASNSize > 0) and (OldBuffer^ = ASN1_SEQ) then
         begin
           // continue to decode the bitstring as ASN.1 formatted content
           Buffer:=OldBuffer;
@@ -920,7 +922,11 @@ end;
 // Beginning with the @Start position, decode the ASN.1 item of the next element in @Buffer. Type of item is stored in @ASNType
 // @Offset starts at 0
 
-function ASNParseItem(var Buffer: PByte; BufferEnd: PByte; List: TStrings): boolean;
+const
+  // Maximum nesting of bit strings that contain DER
+  ASNMaxBitStringDepth = 32;
+
+function ASNParseItem(var Buffer: PByte; BufferEnd: PByte; List: TStrings; Depth: Integer = 0): boolean;
 
   function BufToString(Len : Integer): AnsiString;
   begin
@@ -935,19 +941,19 @@ var
   n: Integer;
   S,S2: AnsiString;
   y: Int64;
-  OldBuffer: PByte;
+  OldBuffer, ContentEnd: PByte;
 
 begin
   Result:=false;
   if not ASNFetch(Buffer, BufferEnd, ASNType, ASNSize) then
+    Exit;
+  if (BufferEnd-Buffer) < ASNSize then
     Exit;
   if (ASNType and $20) > 0 then
   begin // constructed
     ASNParseAdd(List, '', ASNType, ASNSize);
     Exit(True);
   end;
-  if (BufferEnd-Buffer) < ASNSize then
-    Exit;
   if (ASNType = ASN1_BITSTR) and (ASNSize < 1) then
     Exit;
   S:='';
@@ -972,10 +978,16 @@ begin
         S2 := BufToString(ASNSize);
         S:=BytesToHexStr(S2);
         ASNParseAdd(List, S, ASNType, ASNSize);
-        if (ASNType = ASN1_BITSTR) and (OldBuffer^ = ASN1_SEQ) then
+        if (ASNType = ASN1_BITSTR) and (ASNSize > 0) and (OldBuffer^ = ASN1_SEQ) then
         begin
-          // continue to decode the bitstring as ASN.1 formatted content
+          // decode the bitstring content as ASN.1, within the bitstring
+          if Depth >= ASNMaxBitStringDepth then
+            Exit;
+          ContentEnd:=Buffer;
           Buffer:=OldBuffer;
+          while (Buffer < ContentEnd) and ASNParseItem(Buffer, ContentEnd, List, Depth+1) do ;
+          if Buffer <> ContentEnd then
+            Exit;
         end;
       end;
     ASN1_UTF8STRING, ASN1_PRINTABLESTRING, ASN1_IA5STRING:

@@ -29,6 +29,11 @@ type
     procedure TestDebugNegativeLength;
     procedure TestBitStringWithoutContent;
     procedure TestTruncatedItem;
+    procedure TestConstructedTooLong;
+    procedure TestBitStringContent;
+    procedure TestBitStringContentBounded;
+    procedure TestBitStringNestingLimit;
+    procedure TestDebugBitStringWithoutContent;
   end;
 
 implementation
@@ -159,6 +164,82 @@ begin
   ASNParse(TBytes([$02,$01,$07,$04,$05,$AA,$BB]),FList);
   AssertEquals('Parsing stops at the truncated octet string',1,FList.Count);
   AssertEquals('Integer before the truncated item','7',FList[0]);
+end;
+
+
+procedure TTestASN.TestConstructedTooLong;
+begin
+  ASNParse(TBytes([$02,$01,$07,$30,$05,$02,$01,$01]),FList);
+  AssertEquals('Parsing stops at the sequence longer than the buffer',1,FList.Count);
+  AssertEquals('Integer before the sequence','7',FList[0]);
+end;
+
+
+procedure TTestASN.TestBitStringContent;
+begin
+  // BIT STRING, 0 unused bits, content SEQUENCE { INTEGER 5 }, then NULL
+  ASNParse(TBytes([$03,$06,$00,$30,$03,$02,$01,$05,$05,$00]),FList);
+  AssertEquals('Item count',4,FList.Count);
+  AssertEquals('Bit string',ASN1_BITSTR,ItemType(0));
+  AssertEquals('Sequence inside the bit string',ASN1_SEQ,ItemType(1));
+  AssertEquals('Integer inside the bit string',ASN1_INT,ItemType(2));
+  AssertEquals('Integer value','5',FList[2]);
+  AssertEquals('Null after the bit string',ASN1_NULL,ItemType(3));
+end;
+
+
+procedure TTestASN.TestBitStringContentBounded;
+begin
+  // The SEQUENCE inside the bit string claims 6 bytes, the bit string only has 4 left
+  ASNParse(TBytes([$03,$06,$00,$30,$06,$02,$01,$05,$05,$00,$05,$00]),FList);
+  AssertEquals('Parsing stops inside the bit string',1,FList.Count);
+  AssertEquals('Bit string',ASN1_BITSTR,ItemType(0));
+end;
+
+
+procedure TTestASN.TestBitStringNestingLimit;
+
+  // DER length bytes for aLength
+  function EncodeLen(aLength: Integer): TBytes;
+  begin
+    if aLength<128 then
+      Result:=TBytes([aLength])
+    else if aLength<256 then
+      Result:=TBytes([$81,aLength])
+    else
+      Result:=TBytes([$82,aLength shr 8,aLength and $FF]);
+  end;
+
+var
+  lData, lSeq: TBytes;
+  I, lLevels: Integer;
+begin
+  // 40 levels of BIT STRING { SEQUENCE { ... } } around INTEGER 1
+  lLevels:=40;
+  lData:=TBytes([$02,$01,$01]);
+  for I:=1 to lLevels do
+    begin
+    lSeq:=Concat(TBytes([$30]),EncodeLen(Length(lData)),lData);
+    lData:=Concat(TBytes([$03]),EncodeLen(Length(lSeq)+1),TBytes([$00]),lSeq);
+    end;
+  ASNParse(lData,FList);
+  AssertTrue('Parsing stops before the innermost integer',FList.Count<2*lLevels+1);
+  AssertTrue('Outer levels parsed',FList.Count>=2*32);
+end;
+
+
+procedure TTestASN.TestDebugBitStringWithoutContent;
+var
+  lRaised: Boolean;
+begin
+  lRaised:=False;
+  try
+    ASNDebug(TBytes([$03,$00]));
+  except
+    on EHashUtil do
+      lRaised:=True;
+  end;
+  AssertTrue('ASNDebug raises EHashUtil for a bit string without unused-bits byte',lRaised);
 end;
 
 
