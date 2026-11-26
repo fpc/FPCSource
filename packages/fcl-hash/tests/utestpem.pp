@@ -15,11 +15,15 @@ Type
   TTestPEM = Class(TTestCase)
   protected
     procedure GetPEM_PrivateKeyRSA2048bit(out PrivatePEM, PublicPEM: Ansistring);
+    // PKCS#1 v1.5 signature of aData, used as is as the DigestInfo, with the 512-bit test key
+    function SignWithSmallKey(const aData: TBytes): AnsiString;
   Published
     Procedure TestECC_Load;
     Procedure TestRSA_RS256Verify;
     Procedure TestRSA_PrivatePublicPEM_NoPassphrase;
     Procedure TestRSA_SignCRTPLessThanQ;
+    Procedure TestRSA_VerifyDigestInfo;
+    Procedure TestRSA_VerifyRejectsE3Forgery;
   end;
 
 implementation
@@ -196,16 +200,36 @@ begin
   end;
 end;
 
+const
+  // 512-bit key with p < q
+  SmallKeyN = 'E00B841F439034CF534B24D368201E765357E140C626AAD330337F8F709F586B3E1F59C766B8B65365A233641E2E42E826E206B970E9C9539D2020DE642D3A5B';
+  SmallKeyE = '010001';
+  SmallKeyD = 'BA0275A82B44EFC36DC906830A8118296F1A98265A1D4258623D6F5B9CCA7EF15DFEC4DC44D1EBD7B4CD6E52004A7EA4A52DD2C159AE793B0FE65A7788C1CDE9';
+  SmallKeyP = '764DDABF9C746153C5444912D29CE4CB78B57FA0364C947423A8CA31DCD4F2A5';
+  SmallKeyQ = '01E4D06EFEEFDA8D7A70DFE8426CBB068037FE47501FC124A974E07CC2C962E8FF';
+  SmallKeyDP = '564590300B381381B36988A0615668C2B8D422AE02EAF5977C29AAC991F0F8C1';
+  SmallKeyDQ = '9C14CA9742CAFEDF5B758A85D0118A2F3F579AC7DDE1459754AC6D1E1CCDBE2B';
+  SmallKeyQI = '224C778FE22D9A52A77769AFA3EF080E672BECBD687CAA4A6D81CE2A7A99F33D';
+
+function TTestPEM.SignWithSmallKey(const aData: TBytes): AnsiString;
+var
+  Key: TX509RSAPrivateKey;
+  PrivateRSA: TRSA;
+begin
+  Key.InitWithHexStrings(SmallKeyN,SmallKeyE,SmallKeyD,SmallKeyP,SmallKeyQ,SmallKeyDP,SmallKeyDQ,SmallKeyQI);
+  RSACreate(PrivateRSA);
+  try
+    RSAInitFromX509PrivateKey(PrivateRSA,Key);
+    SetLength(Result{%H-},PrivateRSA.ModulusLen);
+    AssertEquals('Signature length',PrivateRSA.ModulusLen,
+                 RSAEncryptSign(PrivateRSA,PByte(aData),Length(aData),PByte(Result),True));
+  finally
+    RSAFree(PrivateRSA);
+  end;
+end;
+
 procedure TTestPEM.TestRSA_SignCRTPLessThanQ;
 const
-  KeyN = 'E00B841F439034CF534B24D368201E765357E140C626AAD330337F8F709F586B3E1F59C766B8B65365A233641E2E42E826E206B970E9C9539D2020DE642D3A5B';
-  KeyE = '010001';
-  KeyD = 'BA0275A82B44EFC36DC906830A8118296F1A98265A1D4258623D6F5B9CCA7EF15DFEC4DC44D1EBD7B4CD6E52004A7EA4A52DD2C159AE793B0FE65A7788C1CDE9';
-  KeyP = '764DDABF9C746153C5444912D29CE4CB78B57FA0364C947423A8CA31DCD4F2A5';
-  KeyQ = '01E4D06EFEEFDA8D7A70DFE8426CBB068037FE47501FC124A974E07CC2C962E8FF';
-  KeyDP = '564590300B381381B36988A0615668C2B8D422AE02EAF5977C29AAC991F0F8C1';
-  KeyDQ = '9C14CA9742CAFEDF5B758A85D0118A2F3F579AC7DDE1459754AC6D1E1CCDBE2B';
-  KeyQI = '224C778FE22D9A52A77769AFA3EF080E672BECBD687CAA4A6D81CE2A7A99F33D';
   PayloadLen = 20;
 var
   Key: TX509RSAPrivateKey;
@@ -213,12 +237,12 @@ var
   Payload, Signature, Verified: TBytes;
   I, J, VerifiedLen: Integer;
 begin
-  Key.InitWithHexStrings(KeyN,KeyE,KeyD,KeyP,KeyQ,KeyDP,KeyDQ,KeyQI);
+  Key.InitWithHexStrings(SmallKeyN,SmallKeyE,SmallKeyD,SmallKeyP,SmallKeyQ,SmallKeyDP,SmallKeyDQ,SmallKeyQI);
   RSACreate(PrivateRSA);
   RSACreate(PublicRSA);
   try
     RSAInitFromX509PrivateKey(PrivateRSA,Key);
-    RsaInitFromPublicKey(PublicRSA,HexStrToString(KeyN),HexStrToString(KeyE));
+    RsaInitFromPublicKey(PublicRSA,HexStrToString(SmallKeyN),HexStrToString(SmallKeyE));
     SetLength(Payload,PayloadLen);
     SetLength(Signature,PrivateRSA.ModulusLen);
     SetLength(Verified,PrivateRSA.ModulusLen);
@@ -236,6 +260,54 @@ begin
     RSAFree(PrivateRSA);
     RSAFree(PublicRSA);
   end;
+end;
+
+procedure TTestPEM.TestRSA_VerifyDigestInfo;
+var
+  Hash: AnsiString;
+  HashBytes, DigestInfo, Data: TBytes;
+  I: Integer;
+
+  function Verify(const aData: TBytes): Boolean;
+  begin
+    Result:=RS256VerifyFromPublicKeyHexa(SmallKeyE+SmallKeyN,Hash,SignWithSmallKey(aData));
+  end;
+
+begin
+  SetLength(Hash{%H-},32);
+  for I:=1 to 32 do
+    Hash[I]:=AnsiChar(I*5);
+  HashBytes:=BytesFromVar(@Hash[1],32);
+  DigestInfo:=EncodeDigestInfoSHA(RSADigestInfoSHA256,32);
+
+  AssertTrue('SHA-256 DigestInfo with NULL parameters',Verify(Concat(DigestInfo,HashBytes)));
+  AssertTrue('SHA-256 DigestInfo without parameters',
+             Verify(Concat(TBytes([$30,47,$30,11,$06,9,$60,$86,$48,1,101,3,4,2,1,$04,32]),HashBytes)));
+  AssertFalse('Byte after the hash',Verify(Concat(DigestInfo,HashBytes,TBytes([0]))));
+  AssertFalse('OID of a hash with another length',Verify(Concat(EncodeDigestInfoSHA(RSADigestInfoSHA384,32),HashBytes)));
+  AssertFalse('Unknown OID',Verify(Concat(EncodeDigestInfoSHA(11,32),HashBytes)));
+  AssertFalse('Hash too short',Verify(Copy(Concat(DigestInfo,HashBytes),0,50)));
+  Data:=Concat(DigestInfo,HashBytes);
+  Data[Length(Data)-1]:=Data[Length(Data)-1] xor 1;
+  AssertFalse('Other hash',Verify(Data));
+end;
+
+procedure TTestPEM.TestRSA_VerifyRejectsE3Forgery;
+const
+  // e=3 public key, hash and a signature forged without the private key
+  ForgeKeyHexa = '000003ACC5D7CA65F7D22FEFAD479268BCC4A614117EDEABE129360B099C5414FB6965E116993B8C3EF065996CC05D4E25F7078C7F8D166A8C6046E55E161C05'
+                 +'0BC1955538C06202CF7E0ACD6CDBFB51E80147AB878C107E1556570D03DC6205AB80A7D549C47032C0A390F86A51C80F89EB200B8F3892C2337F9755AB934F6B'
+                 +'0833340CCC96FF6011AE7C0AB6D9416CFF14CC3EEE977879825E36699EECE1F9BEC9D803A8122EF5794DAE009D1257DF158903DDCE0EC6CCE9090180C49A590C'
+                 +'8C491868247A837012128E8A588AE705D62FEB4FBC5C7F036C73BB3BADC0EE38729B31C2FB6847CB86F12A728E0D6CA94B62B1CB1F1161A30335ADAF866CA95B'
+                 +'EBD523';
+  ForgeHash = 'E457C93DCCD27F3B2142F65AFE309B5262D1AF6D7C6AE9139AB6820C277909A8';
+  ForgeSignature = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+                   +'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+                   +'0000000000000000000000000000000000000000000000000000000000000000000000000000000000000032CBFD4A7ADC7905583D767520F51640759176D378'
+                   +'26F2EF63AE3DC7ADAB162566D64AD984AE82F08CBE5ADB31FDC3FDE3A3E1351D3963296BBA64599EAD8865392D2F04F74EBA434887CFB984C821896FFCDF3609';
+begin
+  AssertFalse('Forged signature rejected',
+              RS256VerifyFromPublicKeyHexa(ForgeKeyHexa,HexStrToString(ForgeHash),HexStrToString(ForgeSignature)));
 end;
 
 initialization

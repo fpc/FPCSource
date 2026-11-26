@@ -744,13 +744,62 @@ begin
   end;
 end;
 
+// Length of the hash for DigestInfo type aSHAType, 0 for an unknown type.
+function DigestInfoHashLen(aSHAType: Byte): Integer;
+
+begin
+  case aSHAType of
+    RSADigestInfoSHA224, RSADigestInfoSHA512_224, RSADigestInfoSHA3_224: Result:=28;
+    RSADigestInfoSHA256, RSADigestInfoSHA512_256, RSADigestInfoSHA3_256: Result:=32;
+    RSADigestInfoSHA384, RSADigestInfoSHA3_384: Result:=48;
+    RSADigestInfoSHA512, RSADigestInfoSHA3_512: Result:=64;
+  else
+    Result:=0;
+  end;
+end;
+
+
+// True when aData[0..aSize-1] is exactly aPrefix followed by aHash.
+function IsEncodedDigest(aData: PByte; aSize: Integer; const aPrefix: TBytes; const aHash: AnsiString): Boolean;
+
+begin
+  Result:=(aSize=Length(aPrefix)+Length(aHash))
+          and CompareMem(aData,PByte(aPrefix),Length(aPrefix))
+          and CompareMem(aData+Length(aPrefix),PAnsiChar(aHash),Length(aHash));
+end;
+
+
+// True when aData[0..aSize-1] is a SHA-2 or SHA-3 DigestInfo for aHash, with or without NULL parameters.
+function IsDigestInfoForHash(aData: PByte; aSize: Integer; const aHash: AnsiString): Boolean;
+
+var
+  lType, lLen: Byte;
+  lPrefix: TBytes;
+
+begin
+  Result:=False;
+  if (Length(aHash)=0) or (Length(aHash)>64) then
+    Exit;
+  lLen:=Length(aHash);
+  for lType:=RSADigestInfoSHA256 to RSADigestInfoSHA3_512 do
+    if DigestInfoHashLen(lType)=lLen then
+      begin
+      lPrefix:=EncodeDigestInfoSHA(lType,lLen);
+      if IsEncodedDigest(aData,aSize,lPrefix,aHash) then
+        Exit(True);
+      lPrefix:=[ASN1_SEQ, 15 + lLen,
+                  ASN1_SEQ, 11,
+                    ASN1_OBJID, 9, 2*40 + 16, $86, $48, 1, 101, 3, 4, 2, lType,
+                  ASN1_OCTSTR, lLen];
+      if IsEncodedDigest(aData,aSize,lPrefix,aHash) then
+        Exit(True);
+      end;
+end;
+
+
 function RsaVerify(const Modulus, Exponent, Hash, Signature: AnsiString): Boolean;
 var
-  ASNType, ASNSize: Int32;
   Data: array[0..4095] of byte;
-  Digest: AnsiString;
-  DataP, DataEnd: PByte;
-  OID: AnsiString;
   RSA: TRSA;
   Size: Integer;
 begin
@@ -768,51 +817,10 @@ begin
   RsaCreate(RSA);
   try
     RsaInitFromPublicKey(RSA, Modulus, Exponent);
-    DataP:=PByte(@Data[0]);
-    DataEnd:=DataP+length(Data);
-    Size := RSADecryptVerify(RSA, PByte(Signature), DataP, length(Signature), True); // Decrypt the signature
+    Size := RSADecryptVerify(RSA, PByte(Signature), @Data[0], length(Signature), True); // Decrypt the signature
     if Size = -1 then
       Exit;
-    if not ASNFetch(DataP, DataEnd, ASNType, ASNSize) then  // Sequence: DigestInfo
-      Exit;
-    if ASNType <> ASN1_SEQ then
-      Exit;
-    if not ASNFetch(DataP, DataEnd, ASNType, ASNSize) then  // Sequence: AlgorithmIdentifier
-      Exit;
-    if ASNType <> ASN1_SEQ then
-      Exit;
-    if not ASNFetchOID(DataP, DataEnd, OID) then  // OID: Algorithm
-      Exit;
-    if not ASNFetch(DataP, DataEnd, ASNType, ASNSize) then  // ASN1_NULL
-      Exit;
-    if ASNType = ASN1_NULL then
-    begin
-      if not ASNFetch(DataP, DataEnd, ASNType, ASNSize) then  // OctetString: Digest
-        Exit;
-    end;
-    if ASNType <> ASN1_OCTSTR then
-    begin
-      {$IFDEF TLS_DEBUG}
-      writeln('RsaVerify - OCTETSTRING Digest not found in decoded Signature');
-      {$ENDIF}
-      Exit;
-    end;
-    if ASNSize <> length(Hash) then
-    begin
-      {$IFDEF TLS_DEBUG}
-      writeln('RsaVerify - Mismatch digest size: ',ASNSize,' != Hash.Length: ', length(Hash));
-      {$ENDIF}
-      Exit;
-    end;
-    if DataEnd-DataP<ASNSize then
-      Exit;
-    SetLength(Digest{%H-},ASNSize);
-    System.Move(DataP^,Digest[1],ASNSize);
-    {$IFDEF TLS_DEBUG}
-      writeln('RsaVerify - Compare Digest: ', Digest);
-      writeln('RsaVerify - with Hash: ', Hash);
-    {$ENDIF}
-    Result := Digest=Hash;
+    Result := IsDigestInfoForHash(@Data[0], Size, Hash);
     {$IFDEF TLS_DEBUG}
     if Result then
       writeln('RsaVerify - Success')
