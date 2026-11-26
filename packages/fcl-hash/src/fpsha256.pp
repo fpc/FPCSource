@@ -567,6 +567,10 @@ var
 begin
   PRK:=Default(TSHA256Digest);
   T:=Default(TSHA256Digest);
+  Output:=[];
+  // RFC 5869: at most 255 blocks
+  if (DesiredLen<0) or (DesiredLen>255*SizeOf(T)) then
+    Exit(False);
   Result := HMAC(PByte(Salt), Length(Salt), PByte(IKM), Length(IKM), PRK);
   if not Result then
     Exit;
@@ -811,6 +815,10 @@ var
 begin
   PRK:=Default(TSHA224Digest);
   T:=Default(TSHA224Digest);
+  Output:=[];
+  // RFC 5869: at most 255 blocks
+  if (DesiredLen<0) or (DesiredLen>255*SizeOf(T)) then
+    Exit(False);
   Result := HMAC(PByte(Salt), Length(Salt), PByte(IKM), Length(IKM), PRK);
   if not Result then
     Exit;

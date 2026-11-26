@@ -24,6 +24,8 @@ type
     procedure TestSmallHMAC;
     procedure TestHMACStream;
     procedure TestOver4GiB;
+    procedure TestHKDF;
+    procedure TestHKDFSHA224;
   end;
 
   { TTestECDSASHA256 }
@@ -226,6 +228,65 @@ begin
 {$ELSE}
   Ignore('Needs a 64-bit target');
 {$ENDIF}
+end;
+
+procedure TTestSHA256.TestHKDF;
+
+const
+  // RFC 5869 A.1
+  OKM = '3CB25F25FAACD57A90434F64D0362F2A2D2D0A90CF1A5A4C5DB02D56ECC4C5BF34007208D5B887185865';
+
+var
+  Salt, IKM, Info, Output : TBytes;
+  I : Integer;
+
+begin
+  IKM:=[];
+  SetLength(IKM,22);
+  FillChar(IKM[0],22,$0B);
+  Salt:=[];
+  SetLength(Salt,13);
+  for I:=0 to 12 do
+    Salt[I]:=I;
+  Info:=[];
+  SetLength(Info,10);
+  for I:=0 to 9 do
+    Info[I]:=$F0+I;
+  Output:=[];
+  AssertTrue('Derived',TSHA256.HKDF(Salt,IKM,Info,Output,42));
+  AssertEquals('RFC 5869 A.1',OKM,UpperCase(BytesToHexStr(Output)));
+  SetLength(Output,42);
+  FillChar(Output[0],42,$AA);
+  AssertTrue('Derived with a prefilled output',TSHA256.HKDF(Salt,IKM,Info,Output,42));
+  AssertEquals('Prefilled output of the requested length is replaced',OKM,UpperCase(BytesToHexStr(Output)));
+  SetLength(Output,10);
+  AssertTrue('Derived with a shorter prefilled output',TSHA256.HKDF(Salt,IKM,Info,Output,42));
+  AssertEquals('Shorter prefilled output is replaced',OKM,UpperCase(BytesToHexStr(Output)));
+  AssertTrue('255 blocks',TSHA256.HKDF(Salt,IKM,Info,Output,255*32));
+  AssertEquals('255 blocks length',255*32,Length(Output));
+  AssertFalse('More than 255 blocks',TSHA256.HKDF(Salt,IKM,Info,Output,255*32+1));
+  AssertEquals('No output for more than 255 blocks',0,Length(Output));
+  AssertFalse('Negative length',TSHA256.HKDF(Salt,IKM,Info,Output,-1));
+end;
+
+procedure TTestSHA256.TestHKDFSHA224;
+
+var
+  Salt, IKM, Info, Fresh, Output : TBytes;
+
+begin
+  Salt:=TBytes([1,2,3]);
+  IKM:=TBytes([4,5,6,7]);
+  Info:=TBytes([8,9]);
+  Fresh:=[];
+  AssertTrue('Derived',TSHA224.HKDF(Salt,IKM,Info,Fresh,60));
+  Output:=[];
+  SetLength(Output,60);
+  FillChar(Output[0],60,$AA);
+  AssertTrue('Derived with a prefilled output',TSHA224.HKDF(Salt,IKM,Info,Output,60));
+  AssertEquals('Prefilled output is replaced',BytesToHexStr(Fresh),BytesToHexStr(Output));
+  AssertTrue('255 blocks',TSHA224.HKDF(Salt,IKM,Info,Output,255*28));
+  AssertFalse('More than 255 blocks',TSHA224.HKDF(Salt,IKM,Info,Output,255*28+1));
 end;
 
 initialization

@@ -25,6 +25,7 @@ type
     procedure TestSmallHMAC;
     procedure TestHMACStream;
     procedure TestOver4GiB;
+    procedure TestHKDF;
   end;
 
   { TTestSHA384 }
@@ -189,6 +190,36 @@ begin
 {$ELSE}
   Ignore('Needs a 64-bit target');
 {$ENDIF}
+end;
+
+procedure TTestSHA512.TestHKDF;
+
+var
+  Salt, IKM, Info, Fresh, Output : TBytes;
+
+begin
+  Salt:=TBytes([1,2,3]);
+  IKM:=TBytes([4,5,6,7]);
+  Info:=TBytes([8,9]);
+  Fresh:=[];
+  AssertTrue('SHA-512 derived',TSHA512.HKDF(Salt,IKM,Info,Fresh,100));
+  Output:=[];
+  SetLength(Output,100);
+  FillChar(Output[0],100,$AA);
+  AssertTrue('SHA-512 derived with a prefilled output',TSHA512.HKDF(Salt,IKM,Info,Output,100));
+  AssertEquals('SHA-512 prefilled output is replaced',BytesToHexStr(Fresh),BytesToHexStr(Output));
+  AssertTrue('SHA-512 255 blocks',TSHA512.HKDF(Salt,IKM,Info,Output,255*64));
+  AssertFalse('SHA-512 more than 255 blocks',TSHA512.HKDF(Salt,IKM,Info,Output,255*64+1));
+  AssertFalse('SHA-512 negative length',TSHA512.HKDF(Salt,IKM,Info,Output,-1));
+
+  Fresh:=[];
+  AssertTrue('SHA-384 derived',TSHA384.HKDF(Salt,IKM,Info,Fresh,100));
+  SetLength(Output,100);
+  FillChar(Output[0],100,$AA);
+  AssertTrue('SHA-384 derived with a prefilled output',TSHA384.HKDF(Salt,IKM,Info,Output,100));
+  AssertEquals('SHA-384 prefilled output is replaced',BytesToHexStr(Fresh),BytesToHexStr(Output));
+  AssertTrue('SHA-384 255 blocks',TSHA384.HKDF(Salt,IKM,Info,Output,255*48));
+  AssertFalse('SHA-384 more than 255 blocks',TSHA384.HKDF(Salt,IKM,Info,Output,255*48+1));
 end;
 
 

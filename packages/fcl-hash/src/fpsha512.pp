@@ -623,6 +623,10 @@ var
 begin
   PRK:=Default(TSHA512Digest);
   T:=Default(TSHA512Digest);
+  Output:=[];
+  // RFC 5869: at most 255 blocks
+  if (DesiredLen<0) or (DesiredLen>255*SizeOf(T)) then
+    Exit(False);
   Result := HMAC(PByte(Salt), System.Length(Salt), PByte(IKM), Length(IKM), PRK);
   if not Result then
     Exit;
@@ -883,6 +887,10 @@ var
 begin
   PRK:=Default(TSHA384Digest);
   T:=Default(TSHA384Digest);
+  Output:=[];
+  // RFC 5869: at most 255 blocks
+  if (DesiredLen<0) or (DesiredLen>255*SizeOf(T)) then
+    Exit(False);
   Result := HMAC(PByte(Salt), System.Length(Salt), PByte(IKM), Length(IKM), PRK);
   if not Result then
     Exit;
