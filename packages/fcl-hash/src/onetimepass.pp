@@ -41,9 +41,16 @@ Type
   TRandomBytes = Procedure (aBytes : TByteDynArray);
   EOTPError = Class(Exception);
 
-function HOTPCalculateToken(const aSecret: AnsiString; const Counter: LongInt): LongInt;
+// 6 digit HOTP token (RFC 4226, HMAC-SHA1) of Base32 secret aSecret for Counter.
+// Counter -1 means the current TOTP time step instead.
+function HOTPCalculateToken(const aSecret: AnsiString; const Counter: Int64): LongInt;
+// 6 digit TOTP token (RFC 6238, 30 second steps) of Base32 secret aSecret for the current time.
 function TOTPCalculateToken(const aSecret: AnsiString): LongInt;
+// Same as TOTPCalculateToken.
 function TOTPGenerateToken(const aSecret: AnsiString): LongInt;
+// True when Token is the TOTP token of aSecret for one of the time steps current-WindowSize..current+WindowSize.
+// The input value of Counter is not used. On success Counter is the matching time step, otherwise
+// the last step tried plus 1. False for a negative WindowSize. There is no protection against reuse of a token.
 function TOTPValidate(const aSecret: AnsiString; const Token: LongInt; const WindowSize: LongInt; var Counter: LongInt): Boolean;
 // Validate Token for Unix time aUnixTime (seconds since 1970-01-01 UTC) instead of the current time.
 function TOTPValidate(const aSecret: AnsiString; const Token: LongInt; const WindowSize: LongInt; const aUnixTime: Int64; var Counter: LongInt): Boolean;
@@ -81,7 +88,7 @@ begin
   Result:=HOTPCalculateToken(aSecret,-1);
 end;
 
-function HOTPCalculateToken(const aSecret: AnsiString; const Counter: Longint): Longint;
+function HOTPCalculateToken(const aSecret: AnsiString; const Counter: Int64): Longint;
 
 var
   Digest: TSHA1Digest;
@@ -90,7 +97,7 @@ var
   Part1, Part2, Part3, Part4: UInt32;
   SecretBinBuf: TBytes;
   STime, SSecretBin: RawbyteString;
-  Time: Longint;
+  Time: Int64;
 
 begin
   Time := Counter;
@@ -141,18 +148,22 @@ end;
 
 function TOTPValidate(const aSecret: AnsiString; const Token: LongInt; const WindowSize: LongInt; const aUnixTime: Int64; var Counter: LongInt): Boolean;
 var
-  TimeStamp: Longint;
+  TimeStamp, Step: Int64;
 begin
   Result := False;
   TimeStamp := aUnixTime div TOTP_KeyRegeneration;
-  Counter := Timestamp-WindowSize;
-  while Counter <= TimeStamp+WindowSize do
+  Counter := TimeStamp;
+  if WindowSize < 0 then
+    Exit;
+  Step := TimeStamp-WindowSize;
+  while Step <= TimeStamp+WindowSize do
   begin
-    Result := HOTPCalculateToken(aSecret, Counter) = Token;
+    Result := HOTPCalculateToken(aSecret, Step) = Token;
     if Result then
-      Exit;
-    Inc(Counter);
+      Break;
+    Inc(Step);
   end;
+  Counter := Step;
 end;
 
 end.

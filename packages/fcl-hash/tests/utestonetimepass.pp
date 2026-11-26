@@ -26,6 +26,8 @@ type
     Procedure TestGenCallback;
     Procedure TestValidateRFC6238;
     Procedure TestHOTPRFC4226;
+    Procedure TestHOTP64BitCounter;
+    Procedure TestValidateWindow;
   end;
 
 implementation
@@ -175,6 +177,48 @@ var
 begin
   for I:=0 to High(Tokens) do
     AssertEquals('HOTP token for counter '+IntToStr(I),Tokens[I],HOTPCalculateToken(RFCSecret,I));
+end;
+
+
+procedure TTestOnetimePass.TestHOTP64BitCounter;
+
+const
+  // RFC 4226 secret '12345678901234567890'; tokens computed with Python hmac/hashlib
+  RFCSecret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+  Counters: array[0..3] of Int64 = (2147483648, 4294967297, 1099511627783, 4611686018427387904);
+  Tokens: array[0..3] of LongInt = (197202, 108930, 658338, 109307);
+
+var
+  I: Integer;
+
+begin
+  for I:=0 to High(Counters) do
+    AssertEquals('HOTP token for counter '+IntToStr(Counters[I]),Tokens[I],HOTPCalculateToken(RFCSecret,Counters[I]));
+end;
+
+
+procedure TTestOnetimePass.TestValidateWindow;
+
+const
+  RFCSecret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+  UnixTime = 1111111111;
+
+var
+  lCounter: LongInt;
+  lStep: Int64;
+
+begin
+  lStep:=UnixTime div 30;
+  lCounter:=12345;
+  AssertTrue('Token of the next step with window 1',
+             TOTPValidate(RFCSecret,HOTPCalculateToken(RFCSecret,lStep+1),1,UnixTime,lCounter));
+  AssertEquals('Counter is the matching step',lStep+1,lCounter);
+  AssertFalse('Token of the next step with window 0',
+              TOTPValidate(RFCSecret,HOTPCalculateToken(RFCSecret,lStep+1),0,UnixTime,lCounter));
+  AssertEquals('Counter after failure is the last step tried plus 1',lStep+1,lCounter);
+  AssertFalse('Negative window',
+              TOTPValidate(RFCSecret,HOTPCalculateToken(RFCSecret,lStep),-1,UnixTime,lCounter));
+  AssertEquals('Counter for a negative window is the current step',lStep,lCounter);
 end;
 
 
