@@ -1117,7 +1117,7 @@ begin
   else if SaltLen = RSA_PSS_SaltLen_Auto then
   else if SaltLen = RSA_PSS_SaltLen_Max then
   begin
-    if EncodedLen < HashLen - 2 then
+    if EncodedLen < HashLen + 2 then
       exit(20220502220403);
     SaltLen:=EncodedLen - HashLen - 2;
   end
@@ -1178,9 +1178,13 @@ begin
     SaltLen:=EncodedLen-HashLen-Padding-2;
   end else begin
     Padding:=EncodedLen-HashLen-SaltLen-2;
-    for i:=0 to Padding-1 do
+    i:=0;
+    while i<Padding do
+      begin
       if DB[i]<>0 then
         exit(20220502211521);
+      inc(i);
+      end;
   end;
   if DB[Padding]<>$01 then
     exit(20220502211919);
