@@ -616,6 +616,62 @@ begin
   end;
 end;
 
+{$push}{$Q-}{$R-}
+// $FFFFFFFF when X is 0, 0 otherwise. No branches.
+function CTIsZeroMask(X: DWord): DWord; inline;
+
+var
+  T: DWord;
+
+begin
+  // 32-bit arithmetic in each step
+  T:=not X+1;
+  T:=(X or T) shr 31;
+  T:=T xor 1;
+  Result:=not T+1;
+end;
+
+
+// $FFFFFFFF when A < B, 0 otherwise, for A and B below 2^31. No branches.
+function CTLessMask(A, B: DWord): DWord; inline;
+
+var
+  T: DWord;
+
+begin
+  T:=A-B;
+  T:=T shr 31;
+  Result:=not T+1;
+end;
+
+
+// Index of the first message byte in the PKCS#1 v1.5 type 2 block aBlock[0..aSize-1]: 00 02, at least 8 non-zero
+// padding bytes, 00, message. -1 for an invalid block. Branches and memory accesses do not depend on the block contents.
+function Pkcs1Type2MessageStart(aBlock: PByte; aSize: Integer): Integer;
+
+var
+  I: Integer;
+  lGood, lLooking, lZero, lSeparator: DWord;
+
+begin
+  lGood:=CTIsZeroMask(aBlock[0]) and CTIsZeroMask(aBlock[1] xor 2);
+  lLooking:=$FFFFFFFF;
+  lSeparator:=0;
+  for I:=2 to aSize-1 do
+    begin
+    lZero:=CTIsZeroMask(aBlock[I]);
+    lSeparator:=lSeparator or (DWord(I) and lLooking and lZero);
+    lLooking:=lLooking and not lZero;
+    end;
+  lGood:=lGood and not lLooking and not CTLessMask(lSeparator,10);
+  if lGood=0 then
+    Result:=-1
+  else
+    Result:=lSeparator+1;
+end;
+{$pop}
+
+
 function RSADecryptVerify(var RSA: TRSA; const Input: PByte; Output: PByte;
   Len: Integer; Verify: Boolean): Integer;
 var
@@ -663,16 +719,16 @@ begin
   end;
   try
     BIExport(RSA.Context, Decrypted, Exported, Size); // this releases Decrypted
-    if Exported[Count] <> 0 then
-    begin
-      {$IFDEF CRYPTO_DEBUG}
-      writeln('RSADecryptVerify leading zero missing');
-      {$ENDIF}
-      Exit; // Check Leading Zero
-    end;
-    Inc(Count);
     if Verify then
     begin
+      if Exported[Count] <> 0 then
+      begin
+        {$IFDEF CRYPTO_DEBUG}
+        writeln('RSADecryptVerify leading zero missing');
+        {$ENDIF}
+        Exit; // Check Leading Zero
+      end;
+      Inc(Count);
       // Check Block Type 1
       if Exported[Count] <> 1 then
       begin
@@ -682,46 +738,40 @@ begin
         Exit;
       end;
       Inc(Count);
-      while (Exported[Count] = $FF) and (Count < Size) do
+      while (Count < Size) and (Exported[Count] = $FF) do
       begin
         // Padded with 0xff bytes
         Inc(Count);
         Inc(Padding);
       end;
-    end else
-    begin
-      // Check Block Type 2
-      if Exported[Count] <> 2 then
+      // Check trailing zero byte and padding size
+      if (Count = Size) or (Padding < 8) then
       begin
         {$IFDEF CRYPTO_DEBUG}
-        writeln('RSADecryptVerify Decrypt Blockt Type<>2');
+        writeln('RSADecryptVerify invalid padding');
+        {$ENDIF}
+        Exit;
+      end;
+      if Exported[Count] <> 0 then
+      begin
+        {$IFDEF CRYPTO_DEBUG}
+        writeln('RSADecryptVerify after padding zero missing');
         {$ENDIF}
         Exit;
       end;
       Inc(Count);
-      while (Exported[Count] <> 0) and (Count < Size) do
+    end else
+    begin
+      // Block Type 2, checked without data dependent branches
+      Count := Pkcs1Type2MessageStart(Exported, Size);
+      if Count < 0 then
       begin
-        // Padded with random non-zero bytes
-        Inc(Count);
-        Inc(Padding);
+        {$IFDEF CRYPTO_DEBUG}
+        writeln('RSADecryptVerify invalid padding');
+        {$ENDIF}
+        Exit;
       end;
     end;
-    // Check trailing zero byte and padding size
-    if (Count = Size) or (Padding < 8) then
-    begin
-      {$IFDEF CRYPTO_DEBUG}
-      writeln('RSADecryptVerify invalid padding');
-      {$ENDIF}
-      Exit;
-    end;
-    if Exported[Count] <> 0 then
-    begin
-      {$IFDEF CRYPTO_DEBUG}
-      writeln('RSADecryptVerify after padding zero missing');
-      {$ENDIF}
-      Exit;
-    end;
-    Inc(Count);
     Result := Size-Count;
     if Len < Result then
     begin

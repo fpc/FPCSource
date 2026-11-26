@@ -25,6 +25,7 @@ Type
     Procedure TestRSA_VerifyDigestInfo;
     Procedure TestRSA_VerifyRejectsE3Forgery;
     Procedure TestPemFindTags;
+    Procedure TestRSA_DecryptPadding;
   end;
 
 implementation
@@ -309,6 +310,84 @@ const
 begin
   AssertFalse('Forged signature rejected',
               RS256VerifyFromPublicKeyHexa(ForgeKeyHexa,HexStrToString(ForgeHash),HexStrToString(ForgeSignature)));
+end;
+
+procedure TTestPEM.TestRSA_DecryptPadding;
+const
+  BlockSize = 64;
+var
+  Key: TX509RSAPrivateKey;
+  PrivateRSA, PublicRSA: TRSA;
+
+  // 00 02, aPadding bytes $11, 00 if there is room, then message bytes (I*3+1) up to BlockSize
+  function MakeBlock(aPadding: Integer): TBytes;
+  var
+    I: Integer;
+  begin
+    Result:=[];
+    SetLength(Result,BlockSize);
+    Result[0]:=0;
+    Result[1]:=2;
+    for I:=2 to 1+aPadding do
+      Result[I]:=$11;
+    if 2+aPadding<BlockSize then
+      Result[2+aPadding]:=0;
+    for I:=3+aPadding to BlockSize-1 do
+      Result[I]:=(I*3+1) and $FF;
+  end;
+
+  // Decrypted length of the raw RSA encryption of aBlock; aMessage receives the decrypted bytes
+  function Decrypt(const aBlock: TBytes; out aMessage: TBytes): Integer;
+  var
+    Cipher: TBytes;
+  begin
+    SetLength(Cipher,BlockSize);
+    PublicRSA.Context.ModOffset:=BIGINT_M_OFFSET;
+    BIExport(PublicRSA.Context,BIModPower(PublicRSA.Context,BIImport(PublicRSA.Context,aBlock),PublicRSA.E),@Cipher[0],BlockSize);
+    SetLength(aMessage,BlockSize);
+    Result:=RSADecryptVerify(PrivateRSA,@Cipher[0],@aMessage[0],BlockSize,False);
+    if Result>=0 then
+      SetLength(aMessage,Result);
+  end;
+
+var
+  Block, Msg: TBytes;
+begin
+  Key.InitWithHexStrings(SmallKeyN,SmallKeyE,SmallKeyD,SmallKeyP,SmallKeyQ,SmallKeyDP,SmallKeyDQ,SmallKeyQI);
+  RSACreate(PrivateRSA);
+  RSACreate(PublicRSA);
+  try
+    RSAInitFromX509PrivateKey(PrivateRSA,Key);
+    RsaInitFromPublicKey(PublicRSA,HexStrToString(SmallKeyN),HexStrToString(SmallKeyE));
+
+    Block:=MakeBlock(10);
+    AssertEquals('10 padding bytes',BlockSize-13,Decrypt(Block,Msg));
+    AssertTrue('10 padding bytes: message',CompareMem(@Msg[0],@Block[13],Length(Msg)));
+
+    Block:=MakeBlock(8);
+    AssertEquals('8 padding bytes',BlockSize-11,Decrypt(Block,Msg));
+    AssertTrue('8 padding bytes: message',CompareMem(@Msg[0],@Block[11],Length(Msg)));
+
+    Block:=MakeBlock(8);
+    Block[12]:=0;
+    Block[14]:=0;
+    AssertEquals('Zero bytes inside the message',BlockSize-11,Decrypt(Block,Msg));
+    AssertTrue('Zero bytes inside the message: message',CompareMem(@Msg[0],@Block[11],Length(Msg)));
+
+    AssertEquals('Separator in the last byte gives an empty message',0,Decrypt(MakeBlock(BlockSize-3),Msg));
+
+    AssertEquals('7 padding bytes',-1,Decrypt(MakeBlock(7),Msg));
+    AssertEquals('No separator',-1,Decrypt(MakeBlock(BlockSize-2),Msg));
+    Block:=MakeBlock(10);
+    Block[1]:=1;
+    AssertEquals('Block type 1',-1,Decrypt(Block,Msg));
+    Block:=MakeBlock(10);
+    Block[0]:=1;
+    AssertEquals('First byte not zero',-1,Decrypt(Block,Msg));
+  finally
+    RSAFree(PrivateRSA);
+    RSAFree(PublicRSA);
+  end;
 end;
 
 procedure TTestPEM.TestPemFindTags;
