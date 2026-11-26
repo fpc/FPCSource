@@ -35,6 +35,7 @@ Type
     Procedure TestPemParseValidUntil;
     Procedure TestECC_LoadPublicKeyForms;
     Procedure TestRSA_PublicKeyHexa;
+    Procedure TestRSA_MissingKeyComponent;
   end;
 
 implementation
@@ -666,6 +667,71 @@ begin
       Raised:=True;
   end;
   AssertTrue('4-byte exponent raises EHashUtil',Raised);
+end;
+
+procedure TTestPEM.TestRSA_MissingKeyComponent;
+
+  // Message of the EHashUtil raised by initialising a private key with component aMissing empty
+  function PrivateKeyError(aMissing: Integer): String;
+  var
+    Key: TX509RSAPrivateKey;
+    Parts: array[0..7] of String;
+    RSA: TRSA;
+  begin
+    Result:='';
+    Parts[0]:=SmallKeyN;
+    Parts[1]:=SmallKeyE;
+    Parts[2]:=SmallKeyD;
+    Parts[3]:=SmallKeyP;
+    Parts[4]:=SmallKeyQ;
+    Parts[5]:=SmallKeyDP;
+    Parts[6]:=SmallKeyDQ;
+    Parts[7]:=SmallKeyQI;
+    Parts[aMissing]:='';
+    Key.InitWithHexStrings(Parts[0],Parts[1],Parts[2],Parts[3],Parts[4],Parts[5],Parts[6],Parts[7]);
+    RSACreate(RSA);
+    try
+      try
+        RSAInitFromX509PrivateKey(RSA,Key);
+      except
+        on E: EHashUtil do
+          Result:=E.Message;
+      end;
+    finally
+      RSAFree(RSA);
+    end;
+  end;
+
+  // Message of the EHashUtil raised by initialising a public key from aModulus and aExponent
+  function PublicKeyError(const aModulus, aExponent: AnsiString): String;
+  var
+    RSA: TRSA;
+  begin
+    Result:='';
+    RSACreate(RSA);
+    try
+      try
+        RsaInitFromPublicKey(RSA,aModulus,aExponent);
+      except
+        on E: EHashUtil do
+          Result:=E.Message;
+      end;
+    finally
+      RSAFree(RSA);
+    end;
+  end;
+
+const
+  Names: array[0..7] of String = ('modulus','public exponent','private exponent','prime p','prime q',
+                                  'exponent dP','exponent dQ','coefficient qInv');
+var
+  I: Integer;
+begin
+  for I:=0 to 7 do
+    AssertEquals('Private key without '+Names[I],'RSA key has no '+Names[I],PrivateKeyError(I));
+  AssertEquals('Public key without modulus','RSA key has no modulus',PublicKeyError('',#1#0#1));
+  AssertEquals('Public key without exponent','RSA key has no public exponent',PublicKeyError(#1#2,''));
+  AssertEquals('Complete public key','',PublicKeyError(HexStrToString(SmallKeyN),HexStrToString(SmallKeyE)));
 end;
 
 procedure TTestPEM.TestPemFindTags;

@@ -97,11 +97,14 @@ procedure RSAFree(var RSA: TRSA);
 procedure RsaPublicKeyToHexa(const Modulus, Exponent: AnsiString; var PublicKeyHexa: AnsiString);
 // Modulus and 3-byte exponent from the hex key format of RsaPublicKeyToHexa.
 procedure RsaPublicKeyFromHexa(const PublicKeyHexa: AnsiString; out Modulus, Exponent: AnsiString);
+// Set up RSA with a public key. EHashUtil when the modulus or exponent is empty.
 procedure RsaInitFromPublicKey(var RSA: TRSA; const Modulus, Exponent: AnsiString); overload;
+// Set up RSA with a public key. EHashUtil when the modulus or exponent is empty.
 procedure RSAInitFromPublicKey(var RSA: TRSA; const RSAPublicKey: TX509RSAPublicKey); overload;
 procedure RSAInitFromPublicKeyDER(var RSA: TRSA; const PublicKeyDER: TBytes);
 procedure X509RsaPublicKeyInitFromDER(out RSA: TX509RSAPublicKey; const PublicKeyDER: TBytes);
 
+// Set up RSA with a private key. EHashUtil naming the component when one of the 8 key components is empty.
 procedure RSAInitFromX509PrivateKey(var RSA: TRSA; const RSAPrivateKey: TX509RSAPrivateKey);
 procedure RSAInitFromPrivateKeyDER(var RSA: TRSA; const PrivateKeyDER: TBytes);
 procedure X509RsaPrivateKeyInitFromDER(out RSA: TX509RSAPrivateKey; const PrivateKeyDER: TBytes);
@@ -293,8 +296,17 @@ begin
   Move(aBytes[3],Modulus[1],length(Modulus));
 end;
 
+// EHashUtil naming aName when the key component aLength is 0.
+procedure CheckKeyComponent(aLength: SizeInt; const aName: String);
+begin
+  if aLength=0 then
+    raise EHashUtil.CreateFmt('RSA key has no %s',[aName]);
+end;
+
 procedure RsaInitFromPublicKey(var RSA: TRSA; const Modulus, Exponent: AnsiString);
 begin
+  CheckKeyComponent(Length(Modulus),'modulus');
+  CheckKeyComponent(Length(Exponent),'public exponent');
   RSA.ModulusLen := length(Modulus);
   RSA.M := BIImport(RSA.Context, Modulus);
   RSA.ModulusBits :=  BIBitCount(RSA.M);
@@ -306,10 +318,8 @@ end;
 procedure RSAInitFromPublicKey(var RSA: TRSA;
   const RSAPublicKey: TX509RSAPublicKey);
 begin
-  if RSAPublicKey.Modulus = nil then
-    Exit;
-  if RSAPublicKey.Exponent = nil then
-    Exit;
+  CheckKeyComponent(Length(RSAPublicKey.Modulus),'modulus');
+  CheckKeyComponent(Length(RSAPublicKey.Exponent),'public exponent');
   RSA.ModulusLen := length(RSAPublicKey.Modulus);
   RSA.M := BIImport(RSA.Context, RSAPublicKey.Modulus);
   RSA.ModulusBits := BIBitCount(RSA.M);
@@ -398,22 +408,14 @@ end;
 procedure RSAInitFromX509PrivateKey(var RSA: TRSA;
   const RSAPrivateKey: TX509RSAPrivateKey);
 begin
-  if RSAPrivateKey.PrivateExponent = nil then
-    Exit;
-  if RSAPrivateKey.Prime1 = nil then
-    Exit;
-  if RSAPrivateKey.Prime2 = nil then
-    Exit;
-  if RSAPrivateKey.Exponent1 = nil then
-    Exit;
-  if RSAPrivateKey.Exponent2 = nil then
-    Exit;
-  if RSAPrivateKey.Coefficient = nil then
-    Exit;
-  if RSAPrivateKey.Modulus = nil then
-    Exit;
-  if RSAPrivateKey.PublicExponent = nil then
-    Exit;
+  CheckKeyComponent(Length(RSAPrivateKey.Modulus),'modulus');
+  CheckKeyComponent(Length(RSAPrivateKey.PublicExponent),'public exponent');
+  CheckKeyComponent(Length(RSAPrivateKey.PrivateExponent),'private exponent');
+  CheckKeyComponent(Length(RSAPrivateKey.Prime1),'prime p');
+  CheckKeyComponent(Length(RSAPrivateKey.Prime2),'prime q');
+  CheckKeyComponent(Length(RSAPrivateKey.Exponent1),'exponent dP');
+  CheckKeyComponent(Length(RSAPrivateKey.Exponent2),'exponent dQ');
+  CheckKeyComponent(Length(RSAPrivateKey.Coefficient),'coefficient qInv');
   RSA.ModulusLen := length(RSAPrivateKey.Modulus);
   RSA.M := BIImport(RSA.Context, RSAPrivateKey.Modulus);
   RSA.ModulusBits := BIBitCount(RSA.M);
