@@ -5290,6 +5290,7 @@ unit aoptx86;
                               begin
                                 { Same value - register hasn't changed }
                                 DebugMsg(SPeepholeOptimization + 'Mov2Nop 2 done', hp2);
+                                AllocRegBetween(p_TargetReg, p, hp2, UsedRegs);
                                 RemoveInstruction(hp2);
 
                                 Include(OptsToCheck, aoc_ForceNewIteration);
