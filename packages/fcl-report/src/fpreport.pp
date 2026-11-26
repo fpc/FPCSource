@@ -2458,7 +2458,7 @@ resourcestring
   SErrUnknownElementName = 'Unknown element name : %s';
   SErrUnknownElementClass = 'Unknown element class : %s';
   SErrResetGroupMissing = 'ResetType is rtGroup but no ResetGroup specified';
-  SErrEmptyResetValue = 'ResetType is specified, but no ResetExpression is provided';
+  SErrEmptyResetValue = 'Variable "%s": ResetType is specified, but no ResetExpression is provided';
   SErrExprVariableAggregateOnWrongLevel= 'ExprVariable has Aggregate but not on highest level: %s';
   SErrAggregateWithoutDataName = 'ExprVariable has Aggregate but cannot determine data source: %s';
 
@@ -3324,6 +3324,8 @@ begin
     if (FDataName='') then
       raise EReportError.CreateFmt(SErrAggregateWithoutDataName, [FExpressionNode.AsString]);
     FExpressionNode.InitAggregate;
+    if (FResetType<>rtNone) and (ResetValueExpression='') then
+      raise EReportError.CreateFmt(SErrEmptyResetValue, [Name]);
     end
   else
     begin
