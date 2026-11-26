@@ -245,8 +245,9 @@ end;
 function ASNReadLen(var Buffer: PByte; BufferEnd: PByte): Int32;
 var
   Len: Integer;
+  Size: Int64;
 begin
-  if Buffer>BufferEnd then
+  if Buffer>=BufferEnd then
     raise EHashUtil.Create('20220428135218');
   Result := Buffer^;
   Inc(Buffer);
@@ -255,13 +256,16 @@ begin
   Len := Result and $7F;
   if (Len>4) or (BufferEnd-Buffer < Len) then
     raise EHashUtil.Create('20220428135333');
-  Result := 0;
+  Size := 0;
   while Len > 0 do
   begin
-    Result := Result*256 + Buffer^;
+    Size := Size*256 + Buffer^;
     Inc(Buffer);
     Dec(Len);
   end;
+  if Size > High(Int32) then
+    raise EHashUtil.Create('20261126120000');
+  Result := Size;
 end;
 
 procedure ASNEncodeInt(Value: Int64; var Result: TBytes);
@@ -847,6 +851,7 @@ function ASNFetch(var Buffer: PByte; BufferEnd: PByte; out ASNType,
   ASNSize: Int32): Boolean;
 var
   Len: byte;
+  Size: Int64;
 begin
   Result:=false;
   if Buffer>=BufferEnd then exit;
@@ -860,13 +865,16 @@ begin
   Len := ASNSize and $7F;
   if (Len>4) or ((BufferEnd-Buffer)<Len) then
     exit;
-  ASNSize := 0;
+  Size := 0;
   while Len > 0 do
   begin
-    ASNSize := ASNSize*256 + Buffer^;
+    Size := Size*256 + Buffer^;
     Inc(Buffer);
     Dec(Len);
   end;
+  if Size > High(Int32) then
+    exit;
+  ASNSize := Size;
   Result:=true;
 end;
 
@@ -931,9 +939,11 @@ begin
   if (ASNType and $20) > 0 then
   begin // constructed
     ASNParseAdd(List, '', ASNType, ASNSize);
-    Exit;
+    Exit(True);
   end;
   if (BufferEnd-Buffer) < ASNSize then
+    Exit;
+  if (ASNType = ASN1_BITSTR) and (ASNSize < 1) then
     Exit;
   S:='';
   S2:='';
@@ -1003,6 +1013,7 @@ begin
       ASNParseAdd(List, S, ASNType, ASNSize);
     end;
   end;
+  Result:=True;
 end;
 
 procedure ASNDebugList(const Prefix: string; List: TStrings);
@@ -1027,8 +1038,7 @@ begin
   if length(Buffer)=0 then exit;
   P:=@Buffer[0];
   EndP:=P+length(Buffer);
-  while P < EndP do
-    ASNParseItem(p, EndP, List);
+  while (P < EndP) and ASNParseItem(p, EndP, List) do ;
 end;
 
 procedure ASNParse_GetItem(List: TStrings; Index: integer; out ASNType,
