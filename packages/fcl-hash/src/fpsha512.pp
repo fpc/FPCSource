@@ -531,9 +531,11 @@ begin
   SHA512_.Update(@SHA512.Digest, SizeOf(SHA512.Digest));
   SHA512_.Final;
   System.Move(SHA512_.Digest, aDigest, SizeOf(aDigest));
-// FillChar(KeyDigest, SizeOf(TSHA1Digest),0);
-// FillChar(KeyBuffer, SizeOf(TSHA1ByteBuffer),0);
-// FillChar(PadBuffer, SizeOf(TSHA1ByteBuffer),0);
+  // Clear key material
+  FillChar(KeyBuffer, SizeOf(KeyBuffer), 0);
+  FillChar(PadBuffer, SizeOf(PadBuffer), 0);
+  FillChar(SHA512, SizeOf(SHA512), 0);
+  FillChar(SHA512_, SizeOf(SHA512_), 0);
   Result:=True;
 end;
 
@@ -789,9 +791,11 @@ begin
   SHA384_.Update(@SHA384.Digest, SizeOf(SHA384.Digest));
   SHA384_.Final;
   System.Move(SHA384_.Digest, aDigest, SizeOf(aDigest));
-// FillChar(KeyDigest, SizeOf(TSHA1Digest),0);
-// FillChar(KeyBuffer, SizeOf(TSHA1ByteBuffer),0);
-// FillChar(PadBuffer, SizeOf(TSHA1ByteBuffer),0);
+  // Clear key material
+  FillChar(KeyBuffer, SizeOf(KeyBuffer), 0);
+  FillChar(PadBuffer, SizeOf(PadBuffer), 0);
+  FillChar(SHA384, SizeOf(SHA384), 0);
+  FillChar(SHA384_, SizeOf(SHA384_), 0);
   Result:=True;
 end;
 

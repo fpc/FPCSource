@@ -477,6 +477,11 @@ begin
   SHA256_.Update(@SHA256.Digest, SizeOf(SHA256.Digest));
   SHA256_.Final;
   System.Move(SHA256_.Digest, aDigest, SizeOf(aDigest));
+  // Clear key material
+  FillChar(KeyBuffer, SizeOf(KeyBuffer), 0);
+  FillChar(PadBuffer, SizeOf(PadBuffer), 0);
+  FillChar(SHA256, SizeOf(SHA256), 0);
+  FillChar(SHA256_, SizeOf(SHA256_), 0);
   Result:=True;
 end;
 
@@ -725,6 +730,11 @@ begin
   SHA224_.Update(@SHA224.Digest, SizeOf(SHA224.Digest));
   SHA224_.Final;
   System.Move(SHA224_.Digest, aDigest, SizeOf(aDigest));
+  // Clear key material
+  FillChar(KeyBuffer, SizeOf(KeyBuffer), 0);
+  FillChar(PadBuffer, SizeOf(PadBuffer), 0);
+  FillChar(SHA224, SizeOf(SHA224), 0);
+  FillChar(SHA224_, SizeOf(SHA224_), 0);
   Result:=True;
 end;
 
