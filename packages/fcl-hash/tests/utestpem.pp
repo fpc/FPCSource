@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry, basenenc,
-  fpTLSBigInt, fppem, fprsa, fphashutils, fpecc;
+  fpTLSBigInt, fppem, fprsa, fphashutils, fpecc, fpasn;
 
 Type
 
@@ -32,6 +32,7 @@ Type
     Procedure TestRSA_PSSNoPadding;
     Procedure TestRSA_PrivateKeyNoRandomBytes;
     Procedure TestRSA_BlindedSignatureDeterministic;
+    Procedure TestPemParseValidUntil;
   end;
 
 implementation
@@ -518,6 +519,66 @@ begin
   First:=SignWithSmallKey(Payload);
   for I:=1 to 10 do
     AssertEquals('PKCS#1 v1.5 signature '+IntToStr(I)+' equals the first one',BytesToHexStr(First),BytesToHexStr(SignWithSmallKey(Payload)));
+end;
+
+procedure TTestPEM.TestPemParseValidUntil;
+const
+  // Self-signed EC certificates made with OpenSSL; notAfter 2036-11-23 (UTCTime) and 2054-04-13 (GeneralizedTime)
+  Cert2036 =
+    '-----BEGIN CERTIFICATE-----'+sLineBreak+
+    'MIIBbTCCAROgAwIBAgIUPV5OcacRKn/CGGKUhGBrLGrzeJswCgYIKoZIzj0EAwIw'+sLineBreak+
+    'DDEKMAgGA1UEAwwBdDAeFw0yNjExMjYxODA4NDFaFw0zNjExMjMxODA4NDFaMAwx'+sLineBreak+
+    'CjAIBgNVBAMMAXQwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAATRHwIhq2rJGX3B'+sLineBreak+
+    'lNqHLU9ex8BHC4/41doOJo0akDxPqJZLYlANysZTjqXTR2CZIljvltwkiAzdYvCO'+sLineBreak+
+    'cUcyB4w+o1MwUTAdBgNVHQ4EFgQUG42d60yx2z2P3FsJK/KBTidIQgswHwYDVR0j'+sLineBreak+
+    'BBgwFoAUG42d60yx2z2P3FsJK/KBTidIQgswDwYDVR0TAQH/BAUwAwEB/zAKBggq'+sLineBreak+
+    'hkjOPQQDAgNIADBFAiBMwsewNEKYrht/adLnvj3kxqmuSJAmJZ+tu4q3TSmtwgIh'+sLineBreak+
+    'AJQH/4O+0oT9TA+l53nDFCJzffnjhmcftWTAgwHBuQxB'+sLineBreak+
+    '-----END CERTIFICATE-----';
+  Cert2054 =
+    '-----BEGIN CERTIFICATE-----'+sLineBreak+
+    'MIIBbzCCARWgAwIBAgIUGFoHIF3euzcokkfzTo2V6OSScOUwCgYIKoZIzj0EAwIw'+sLineBreak+
+    'DDEKMAgGA1UEAwwBdDAgFw0yNjExMjYxODA4NDFaGA8yMDU0MDQxMzE4MDg0MVow'+sLineBreak+
+    'DDEKMAgGA1UEAwwBdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABB8fz7M4jK9H'+sLineBreak+
+    'zokWqgCxcxTtxiGusE7EaFje16YpYLtIeiu3a2lA3hc41L5piKpbGo53sCPR/A5j'+sLineBreak+
+    'HzpEm1iVJXajUzBRMB0GA1UdDgQWBBTNSBMANS7Ej4Dr7uxVVjQSf3CSeDAfBgNV'+sLineBreak+
+    'HSMEGDAWgBTNSBMANS7Ej4Dr7uxVVjQSf3CSeDAPBgNVHRMBAf8EBTADAQH/MAoG'+sLineBreak+
+    'CCqGSM49BAMCA0gAMEUCIQDnZYCRjiOnlVHlfEAlILdUAdgSWcH9hGdEYaj8uTSs'+sLineBreak+
+    '2gIgWNCP4XIaFlMAORC95WGsWXeZAeb+W4QjBwlnaQoiioo='+sLineBreak+
+    '-----END CERTIFICATE-----';
+var
+  List: TStringList;
+
+  // Validity sequence with the two given UTCTime values
+  procedure ParseValidity(const aNotBefore, aNotAfter: AnsiString);
+  var
+    Data: TBytes;
+  begin
+    Data:=Concat(TBytes([$30,2+Length(aNotBefore)+2+Length(aNotAfter),$17,Length(aNotBefore)]),
+                 BytesFromVar(@aNotBefore[1],Length(aNotBefore)),
+                 TBytes([$17,Length(aNotAfter)]),BytesFromVar(@aNotAfter[1],Length(aNotAfter)));
+    List.Clear;
+    ASNParse(Data,List);
+  end;
+
+begin
+  List:=TStringList.Create;
+  try
+    ASNParsePemSection(Cert2036,List,_BEGIN_CERTIFICATE,_END_CERTIFICATE);
+    AssertEquals('UTCTime notAfter','20361123',PemParseValidUntil(List));
+    List.Clear;
+    ASNParsePemSection(Cert2054,List,_BEGIN_CERTIFICATE,_END_CERTIFICATE);
+    AssertEquals('GeneralizedTime notAfter','20540413',PemParseValidUntil(List));
+    ParseValidity('990131123456Z','491231235959Z');
+    AssertEquals('UTCTime year 49','20491231',PemParseValidUntil(List));
+    ParseValidity('400131123456Z','500101000000Z');
+    AssertEquals('UTCTime year 50','19500101',PemParseValidUntil(List));
+    List.Clear;
+    ASNParse(TBytes([$02,$01,$05]),List);
+    AssertEquals('No time values','',PemParseValidUntil(List));
+  finally
+    List.Free;
+  end;
 end;
 
 procedure TTestPEM.TestPemFindTags;

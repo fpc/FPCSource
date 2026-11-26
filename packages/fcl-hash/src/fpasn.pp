@@ -40,6 +40,7 @@ const
   ASN1_PRINTABLESTRING = $13;
   ASN1_IA5STRING  = $16;
   ASN1_UTCTIME    = $17;
+  ASN1_GENTIME    = $18;
   ASN1_SEQ        = $30;
   ASN1_SETOF      = $31;
   ASN1_IPADDR     = $40;
@@ -131,6 +132,7 @@ begin
                     : Result:='PrintableString';
     ASN1_IA5STRING  : Result:='IA5String';
     ASN1_UTCTIME    : Result:='UTCTIME';
+    ASN1_GENTIME    : Result:='GeneralizedTime';
     ASN1_SEQ        : Result:='Sequence';
     ASN1_SETOF      : Result:='SET';
     ASN1_IPADDR     : Result:='IPAddress';
@@ -666,9 +668,12 @@ begin
         BufToString(S);
         OutputHexa(Output, S);
       end;
-    ASN1_UTCTIME:
-      begin // 180131123456Z -> 2018-01-31 12:34:56
-        AppendStringToBuffer(Output, ' UTCTIME: ');
+    ASN1_UTCTIME, ASN1_GENTIME:
+      begin // 180131123456Z, 20180131123456Z -> 2018-01-31 12:34:56
+        if ASNType = ASN1_UTCTIME then
+          AppendStringToBuffer(Output, ' UTCTIME: ')
+        else
+          AppendStringToBuffer(Output, ' GeneralizedTime: ');
         BufToString(S);
         AppendStringToBuffer(Output, S);
       end;
@@ -978,8 +983,8 @@ begin
         S2 := BufToString(ASNSize);
         ASNParseAdd(List, S2, ASNType, ASNSize);
       end;
-    ASN1_UTCTIME:
-      begin // 180131123456Z -> 2018-01-31 12:34:56
+    ASN1_UTCTIME, ASN1_GENTIME:
+      begin // 180131123456Z, 20180131123456Z -> 2018-01-31 12:34:56
         S2 := BufToString(ASNSize);
         ASNParseAdd(List, S2, ASNType, ASNSize);
       end;

@@ -56,6 +56,8 @@ function PemLoadECDSA(const aStream : TStream; out PrivateKey: TEccPrivateKey; o
 function PemLoadECDSA(const aStream : TStream; out PrivateKey: TEccPrivateKey; out PublicKey: TEccPublicKey; out PublicKeyX64, PublicKeyY64: AnsiString): Boolean;
 
 procedure PemLoadPrivateKeyAsDER(const PEM: String; out PrivateKey, ECParams: TBytes; out PrivateKeyType: TPrivateKeyType);
+// Expiry date as YYYYMMDD from a certificate parsed with ASNParse: the second of the first two consecutive
+// UTCTime or GeneralizedTime items (notBefore, notAfter). Empty when there are no such items.
 function PemParseValidUntil(List: TStrings): String;
 
 function PemLineIsTag(const Line, Tag: string): boolean; // true if Line contains Tag, ignoring leading and trailing spaces
@@ -236,25 +238,36 @@ begin
   end;
 end;
 
+// YYYYMMDD from a UTCTime (YYMMDD...) or GeneralizedTime (YYYYMMDD...) value, empty when too short.
+function PemTimeToDate(const aTime: String; aASNType: Integer): String;
+begin
+  Result:='';
+  if aASNType=ASN1_GENTIME then
+  begin
+    if Length(aTime)>=8 then
+      Result:=Copy(aTime,1,8);
+  end else if Length(aTime)>=6 then
+  begin
+    // RFC 5280: YY >= 50 is 19YY, otherwise 20YY
+    if aTime[1]>='5' then
+      Result:='19'+Copy(aTime,1,6)
+    else
+      Result:='20'+Copy(aTime,1,6);
+  end;
+end;
+
 function PemParseValidUntil(List: TStrings): String;
 var
-  ASNType: LongInt;
-  S: String;
+  Type1, Type2, Size1, Size2: Integer;
   i: Integer;
 begin
+  Result:='';
   for i := 0 to List.Count-2 do
   begin
-    ASNType := StrToIntDef(List[i],0) shr 16;
-    if ASNType <> ASN1_UTCTIME then
-      Continue;
-    S := List.Strings[i+1];
-    ASNType := StrToIntDef(S,0) shr 16;
-    if ASNType <> ASN1_UTCTIME then
-      Continue;
-    if (S.Length > 6) and (S[length(s)] = 'Z') then
-      SetLength(S,6); // 181231
-    Result:='20'+S; // 20181231
-    Break;
+    ASNParse_GetItem(List, i, Type1, Size1);
+    ASNParse_GetItem(List, i+1, Type2, Size2);
+    if (Type1 in [ASN1_UTCTIME, ASN1_GENTIME]) and (Type2 in [ASN1_UTCTIME, ASN1_GENTIME]) then
+      Exit(PemTimeToDate(List[i+1], Type2));
   end;
 end;
 
