@@ -30,6 +30,8 @@ Type
     Procedure TestRSA_DecryptPadding;
     Procedure TestRSA_PSSModulusSizes;
     Procedure TestRSA_PSSNoPadding;
+    Procedure TestRSA_PrivateKeyNoRandomBytes;
+    Procedure TestRSA_BlindedSignatureDeterministic;
   end;
 
 implementation
@@ -456,6 +458,66 @@ begin
                      RSA_PSS_SaltLen_Max);
   CheckPSSSignVerify('512-bit key, maximum salt',SmallKeyN,SmallKeyE,SmallKeyD,SmallKeyP,SmallKeyQ,SmallKeyDP,SmallKeyDQ,SmallKeyQI,
                      RSA_PSS_SaltLen_Max);
+end;
+
+// Random source that always fails
+function FailingRandomBytes(aBytes: PByte; aCount: Integer): Boolean;
+begin
+  Result:=False;
+end;
+
+procedure TTestPEM.TestRSA_PrivateKeyNoRandomBytes;
+var
+  Key: TX509RSAPrivateKey;
+  PrivateRSA, PublicRSA: TRSA;
+  HashFunc: TRSAHashFuncInfo;
+  Saved: TGetRandomBytes;
+  Payload, Cipher, Output: TBytes;
+  Raised: Boolean;
+begin
+  HashFunc.UseSHA256;
+  Key.InitWithHexStrings(SmallKeyN,SmallKeyE,SmallKeyD,SmallKeyP,SmallKeyQ,SmallKeyDP,SmallKeyDQ,SmallKeyQI);
+  RSACreate(PrivateRSA);
+  RSACreate(PublicRSA);
+  Saved:=GetRandomBytes;
+  try
+    RSAInitFromX509PrivateKey(PrivateRSA,Key);
+    RsaInitFromPublicKey(PublicRSA,HexStrToString(SmallKeyN),HexStrToString(SmallKeyE));
+    Payload:=TBytes([1,2,3,4,5]);
+    SetLength(Cipher,PrivateRSA.ModulusLen);
+    SetLength(Output,PrivateRSA.ModulusLen);
+    AssertEquals('Encrypted',PrivateRSA.ModulusLen,RSAEncryptSign(PublicRSA,@Payload[0],Length(Payload),@Cipher[0],False));
+    GetRandomBytes:=@FailingRandomBytes;
+    AssertEquals('No signature without random bytes',-1,RSAEncryptSign(PrivateRSA,@Payload[0],Length(Payload),@Output[0],True));
+    AssertEquals('No decryption without random bytes',-1,RSADecryptVerify(PrivateRSA,@Cipher[0],@Output[0],Length(Output),False));
+    Raised:=False;
+    try
+      RSASSA_PSS_Sign(PrivateRSA,@Payload[0],Length(Payload),@HashFunc,@Output[0],16);
+    except
+      on EHashUtil do
+        Raised:=True;
+    end;
+    AssertTrue('No PSS signature without random bytes',Raised);
+    GetRandomBytes:=Saved;
+    AssertEquals('Decrypted with random bytes',Length(Payload),RSADecryptVerify(PrivateRSA,@Cipher[0],@Output[0],Length(Output),False));
+    AssertTrue('Decrypted payload',CompareMem(@Output[0],@Payload[0],Length(Payload)));
+  finally
+    GetRandomBytes:=Saved;
+    RSAFree(PrivateRSA);
+    RSAFree(PublicRSA);
+  end;
+end;
+
+procedure TTestPEM.TestRSA_BlindedSignatureDeterministic;
+var
+  Payload: TBytes;
+  First: AnsiString;
+  I: Integer;
+begin
+  Payload:=TBytes([9,8,7,6,5,4,3,2,1]);
+  First:=SignWithSmallKey(Payload);
+  for I:=1 to 10 do
+    AssertEquals('PKCS#1 v1.5 signature '+IntToStr(I)+' equals the first one',BytesToHexStr(First),BytesToHexStr(SignWithSmallKey(Payload)));
 end;
 
 procedure TTestPEM.TestPemFindTags;

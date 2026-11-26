@@ -523,6 +523,46 @@ begin
   end;
 end;
 
+// Input^d mod n with the private key, computed with CRT on Input*r^e for a random r and multiplied by 1/r.
+// Releases Input. Nil when no random bytes are available.
+function RSAPrivateOperation(var RSA: TRSA; Input: PBigInt): PBigInt;
+
+var
+  RandomBytes: TBytes;
+  R, RE, Blinded, BlindedResult, RInv, PMinus2, QMinus2: PBigInt;
+  IsNegative, IsZero: Boolean;
+  I: Integer;
+
+begin
+  Result:=nil;
+  RandomBytes:=[];
+  SetLength(RandomBytes,RSA.ModulusLen-1); // R < n
+  repeat
+    if (Pointer(GetRandomBytes)=Nil) or not GetRandomBytes(PByte(RandomBytes),Length(RandomBytes)) then
+      begin
+      BIRelease(RSA.Context,Input);
+      Exit;
+      end;
+    IsZero:=True;
+    for I:=0 to Length(RandomBytes)-1 do
+      IsZero:=IsZero and (RandomBytes[I]=0);
+  until not IsZero;
+  R:=BIImport(RSA.Context,RandomBytes);
+  FillByte(RandomBytes[0],Length(RandomBytes),0);
+  // Blinded = Input * r^e mod n
+  RSA.Context.ModOffset:=BIGINT_M_OFFSET;
+  RE:=BIModPower(RSA.Context,BICopy(R),RSA.E);
+  Blinded:=BIResidue(RSA.Context,BIMultiply(RSA.Context,Input,RE));
+  BlindedResult:=BICRT(RSA.Context,Blinded,RSA.DP,RSA.DQ,RSA.P,RSA.Q,RSA.QInv);
+  // 1/r mod n = CRT of r^(p-2) mod p and r^(q-2) mod q
+  PMinus2:=BISubtract(RSA.Context,BIClone(RSA.Context,RSA.P^),IntToBI(RSA.Context,2),IsNegative);
+  QMinus2:=BISubtract(RSA.Context,BIClone(RSA.Context,RSA.Q^),IntToBI(RSA.Context,2),IsNegative);
+  RInv:=BICRT(RSA.Context,R,PMinus2,QMinus2,RSA.P,RSA.Q,RSA.QInv);
+  RSA.Context.ModOffset:=BIGINT_M_OFFSET;
+  Result:=BIResidue(RSA.Context,BIMultiply(RSA.Context,BlindedResult,RInv));
+end;
+
+
 function RSAEncryptSign(var RSA: TRSA; const Input: PByte; Len: Integer;
   Output: PByte; Sign: Boolean): Integer;
 var
@@ -595,7 +635,9 @@ begin
     if Sign then
     begin
       // Sign with Private Key
-      Encrypted:=BICRT(RSA.Context,Decrypted,RSA.DP,RSA.DQ,RSA.P,RSA.Q,RSA.QInv); // this releases Decrypted
+      Encrypted:=RSAPrivateOperation(RSA,Decrypted); // this releases Decrypted
+      if Encrypted=nil then
+        Exit;
     end else
     begin
       // Encrypt with Public Key
@@ -703,7 +745,9 @@ begin
   end else
   begin
     // Decrypt with Private Key
-    Decrypted := BICRT(RSA.Context,Encrypted,RSA.DP,RSA.DQ,RSA.P,RSA.Q,RSA.QInv); // this releases Encrypted
+    Decrypted := RSAPrivateOperation(RSA,Encrypted); // this releases Encrypted
+    if Decrypted = nil then
+      Exit;
   end;
   Exported := @Block[0];
   if Size > RSA_MODULUS_BYTES_MAX then
@@ -957,7 +1001,9 @@ begin
 
   EncodedBI:=BIImport(RSA.Context,EncodedMsg);
   // Sign with Private Key
-  Encrypted:=BICRT(RSA.Context,EncodedBI,RSA.DP,RSA.DQ,RSA.P,RSA.Q,RSA.QInv); // this releases EncodedBI
+  Encrypted:=RSAPrivateOperation(RSA,EncodedBI); // this releases EncodedBI
+  if Encrypted=nil then
+    raise EHashUtil.Create('20261127090000');
 
   BIExport(RSA.Context,Encrypted,Output,RSA.ModulusLen); // this releases Encrypted
 
