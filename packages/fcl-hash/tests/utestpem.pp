@@ -36,6 +36,7 @@ Type
     Procedure TestECC_LoadPublicKeyForms;
     Procedure TestRSA_PublicKeyHexa;
     Procedure TestRSA_MissingKeyComponent;
+    Procedure TestRSA_InputNotBelowModulus;
   end;
 
 implementation
@@ -732,6 +733,73 @@ begin
   AssertEquals('Public key without modulus','RSA key has no modulus',PublicKeyError('',#1#0#1));
   AssertEquals('Public key without exponent','RSA key has no public exponent',PublicKeyError(#1#2,''));
   AssertEquals('Complete public key','',PublicKeyError(HexStrToString(SmallKeyN),HexStrToString(SmallKeyE)));
+end;
+
+procedure TTestPEM.TestRSA_InputNotBelowModulus;
+var
+  Key: TX509RSAPrivateKey;
+  PrivateRSA, PublicRSA: TRSA;
+  HashFunc: TRSAHashFuncInfo;
+
+  // aValue + n as ModulusLen bytes, empty when the sum does not fit
+  function AddModulus(const aValue: TBytes): TBytes;
+  var
+    Sum: PBigInt;
+  begin
+    Result:=[];
+    Sum:=BIAdd(PublicRSA.Context,BIImport(PublicRSA.Context,aValue),BIClone(PublicRSA.Context,PublicRSA.M^));
+    if BIBitCount(Sum)<=8*PublicRSA.ModulusLen then
+    begin
+      SetLength(Result,PublicRSA.ModulusLen);
+      BIExport(PublicRSA.Context,Sum,@Result[0],PublicRSA.ModulusLen);
+    end else
+      BIRelease(PublicRSA.Context,Sum);
+  end;
+
+var
+  Payload, Signature, Shifted, Output: TBytes;
+  I: Integer;
+begin
+  HashFunc.UseSHA256;
+  Key.InitWithHexStrings(SmallKeyN,SmallKeyE,SmallKeyD,SmallKeyP,SmallKeyQ,SmallKeyDP,SmallKeyDQ,SmallKeyQI);
+  RSACreate(PrivateRSA);
+  RSACreate(PublicRSA);
+  try
+    RSAInitFromX509PrivateKey(PrivateRSA,Key);
+    RsaInitFromPublicKey(PublicRSA,HexStrToString(SmallKeyN),HexStrToString(SmallKeyE));
+    SetLength(Signature,PrivateRSA.ModulusLen);
+    SetLength(Output,PrivateRSA.ModulusLen);
+    // PKCS#1 v1.5: a signature s for which s + n still fits
+    Shifted:=[];
+    I:=0;
+    while (Length(Shifted)=0) and (I<200) do
+    begin
+      Inc(I);
+      Payload:=TBytes([I and $FF,I shr 8,1,2,3]);
+      RSAEncryptSign(PrivateRSA,@Payload[0],Length(Payload),@Signature[0],True);
+      Shifted:=AddModulus(Signature);
+    end;
+    AssertTrue('Found a PKCS#1 v1.5 signature below 2^512 - n',Length(Shifted)>0);
+    AssertEquals('Signature verifies',Length(Payload),RSADecryptVerify(PublicRSA,@Signature[0],@Output[0],Length(Output),True));
+    AssertEquals('Signature + n rejected',-1,RSADecryptVerify(PublicRSA,@Shifted[0],@Output[0],Length(Output),True));
+    AssertEquals('Modulus itself rejected',-1,RSADecryptVerify(PublicRSA,PByte(HexStrToBytes(SmallKeyN)),@Output[0],Length(Output),True));
+    // PSS: the same
+    Shifted:=[];
+    I:=0;
+    while (Length(Shifted)=0) and (I<200) do
+    begin
+      Inc(I);
+      Payload:=TBytes([I and $FF,I shr 8,4,5,6]);
+      RSASSA_PSS_Sign(PrivateRSA,@Payload[0],Length(Payload),@HashFunc,@Signature[0],16);
+      Shifted:=AddModulus(Signature);
+    end;
+    AssertTrue('Found a PSS signature below 2^512 - n',Length(Shifted)>0);
+    AssertEquals('PSS signature verifies',0,RSASSA_PSS_Verify(PublicRSA,@Payload[0],Length(Payload),@HashFunc,@Signature[0],16));
+    AssertTrue('PSS signature + n rejected',RSASSA_PSS_Verify(PublicRSA,@Payload[0],Length(Payload),@HashFunc,@Shifted[0],16)<>0);
+  finally
+    RSAFree(PrivateRSA);
+    RSAFree(PublicRSA);
+  end;
 end;
 
 procedure TTestPEM.TestPemFindTags;

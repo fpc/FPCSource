@@ -750,6 +750,12 @@ begin
   writeln('RSA', 'RSADecryptVerify Len: ', Len, ' Size: ', Size, ' Padding: ', Padding);
   {$ENDIF}
   Encrypted := BIImport(RSA.Context, Input, Size);
+  // The input must be below n
+  if BICompare(Encrypted, RSA.M) >= 0 then
+  begin
+    BIRelease(RSA.Context, Encrypted);
+    Exit;
+  end;
   if Verify then
   begin
     // Verify with Public Key
@@ -1051,6 +1057,12 @@ begin
 
   // 2. using RSAVP1 verification primitive with public key
   BISignature := BIImport(RSA.Context, Signature, Size);
+  // "If the signature representative s is not between 0 and n - 1, output "invalid signature""
+  if BICompare(BISignature, RSA.M) >= 0 then
+  begin
+    BIRelease(RSA.Context, BISignature);
+    exit(20261127110000);
+  end;
   RSA.Context.ModOffset := BIGINT_M_OFFSET;
   BIEncodedMsg := BIModPower(RSA.Context, BISignature, RSA.E); // this releases BISignature
 
