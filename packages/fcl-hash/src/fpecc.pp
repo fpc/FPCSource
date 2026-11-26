@@ -847,23 +847,53 @@ begin
   Compressed^[0] := 2 + (PublicKey^[ECC_BYTES*2-1] and $01); // 2 + (9 and 1) -> 2 + 1 -> 3
 end;
 
-procedure EccPointDecompress(out Point: TEccPoint; Compressed: PByteBuffer);
+// Rhs = x^3 - 3x + b (mod p), for X < p.
+procedure EccCurveRHS(out Rhs: TVLI; const X: TVLI);
 var
   _3: TVLI;
 begin
   vli_clear(_3);
   _3[0] := 3; // -a = 3
+  vli_modSquare_fast(Rhs, X);                     // x^2
+  vli_modSub(Rhs, Rhs, _3, Curve_P_32);           // x^2 - 3
+  vli_modMult_fast(Rhs, Rhs, X);                  // x^3 - 3x
+  vli_modAdd(Rhs, Rhs, Curve_B_32, Curve_P_32);   // x^3 - 3x + b
+end;
+
+// True when x < p, y < p and y^2 = x^3 - 3x + b (mod p).
+function EccPointIsOnCurve(const Point: TEccPoint): Boolean;
+var
+  Rhs, Y2: TVLI;
+begin
+  Result := False;
+  if (vli_cmp(Curve_P_32, Point.x) <> 1) or (vli_cmp(Curve_P_32, Point.y) <> 1) then
+    Exit;
+  EccCurveRHS(Rhs, Point.x);
+  vli_modSquare_fast(Y2, Point.y);
+  Result := vli_cmp(Y2, Rhs) = 0;
+end;
+
+// Point from a compressed public key. False when the prefix is not 02 or 03 or there is no curve point with this x.
+function EccPointDecompress(out Point: TEccPoint; Compressed: PByteBuffer): Boolean;
+begin
+  Result := False;
+  vli_clear(Point.x);
+  vli_clear(Point.y);
+  if not (Compressed^[0] in [2, 3]) then
+    Exit;
   EccBytes2Native(Point.x, @Compressed[1]);
-  vli_modSquare_fast(Point.y, Point.x);           // y = x^2
-  vli_modSub(Point.y, Point.y, _3, Curve_P_32);          // y = x^2 - 3
-  vli_modMult_fast(Point.y, Point.y, Point.x);           // y = x^3 - 3x
-  vli_modAdd(Point.y, Point.y, Curve_B_32, Curve_P_32);  // y = x^3 - 3x + b
+  if vli_cmp(Curve_P_32, Point.x) <> 1 then
+    Exit;
+  EccCurveRHS(Point.y, Point.x);
   ModSqrt(Point.y);
   if (Point.y[0] and $01) <> (Compressed^[0] and $01) then
     vli_sub(Point.y, Curve_P_32, Point.y);
+  Result := EccPointIsOnCurve(Point);
 end;
 
 function EccImportX963(Input: PByteBuffer; InputLen: Integer; out PublicKey: TEccPublicKey): Boolean; //TLS_1_2
+var
+  Point: TEccPoint;
 begin
   Result := False;
   if Input = nil then
@@ -874,6 +904,10 @@ begin
     Exit;
   if Input^[0] <> 4 then // Check for 4 (Uncompressed)
     Exit;
+  EccBytes2Native(Point.x, @Input[1]);
+  EccBytes2Native(Point.y, @Input[1 + ECC_BYTES]);
+  if not EccPointIsOnCurve(Point) then
+    Exit;
   EccPointCompress(@Input[1], @PublicKey);
   Result := True;
 end;
@@ -881,8 +915,14 @@ end;
 function EccImportX963FromXY(InputX: PByteBuffer; InputXLen: Integer; InputY: PByteBuffer; InputYLen: Integer; out PublicKey: TEccPublicKey): Boolean;
 var
   Compressed: PByteBuffer;
+  Point: TEccPoint;
   I: Integer;
 begin
+  Result := False;
+  EccBytes2Native(Point.x, InputX);
+  EccBytes2Native(Point.y, InputY);
+  if not EccPointIsOnCurve(Point) then
+    Exit;
   Compressed := @PublicKey;
   for I := 0 to ECC_BYTES-1 do
     Compressed^[I+1] := InputX^[I];
@@ -900,7 +940,8 @@ begin
     Exit;
   if OutputLen < 1 + 2*ECC_BYTES then
     Exit;
-  EccPointDecompress(PublicPoint, @PublicKey);
+  if not EccPointDecompress(PublicPoint, @PublicKey) then
+    Exit;
   EccNative2Bytes(@Output[1], PublicPoint.x);
   EccNative2Bytes(@Output[1 + SizeOf(PublicPoint.x)], PublicPoint.y);
   Output^[0] := $04; // Mark as Uncompressed
@@ -960,7 +1001,8 @@ begin
   Result := False;
   if not EccGetRandomNumber(RandomKey) then
     Exit;
-  EccPointDecompress(PublicPoint, @PublicKey);
+  if not EccPointDecompress(PublicPoint, @PublicKey) then
+    Exit;
   EccBytes2Native(PrivateK, @PrivateKey);
   EccPointMult(Product, PublicPoint, PrivateK, @RandomKey);
   EccNative2Bytes(@Secret, Product.x);
@@ -1102,7 +1144,8 @@ var
 
 begin
   Result := False;
-  EccPointDecompress(PublicPoint, @PublicKey);
+  if not EccPointDecompress(PublicPoint, @PublicKey) then
+    Exit;
   EccBytes2Native(l_r, @Signature);
   EccBytes2Native(l_s, @Signature[ECC_BYTES]);
   if vli_isZero(l_r) or vli_isZero(l_s) then
@@ -1189,6 +1232,7 @@ var
   HLength: Integer;
   SHexa: String;
   Buf : TBytes;
+  Point: TEccPoint;
 
 begin
   hLength:=Length(Hexa);
@@ -1198,7 +1242,9 @@ begin
     Buf:=HexStrToBytes(Hexa);
     if Length(Buf)<SizeOf(PublicKey) then
       raise EHashUtil.CreateFmt('EccPublicKeyFromHexa - Invalid length: %d', [Length(buf)]);
-    Move(Buf[0],PublicKey,Sizeof(PublicKey)) // Compressed public key
+    Move(Buf[0],PublicKey,Sizeof(PublicKey)); // Compressed public key
+    if not EccPointDecompress(Point,@PublicKey) then
+      raise EHashUtil.Create('EccPublicKeyFromHexa - Point is not on the curve');
   end else
   begin // uncompressed public key as stored in PEM ASN.1
     if hLength = 2+2*(2*ECC_BYTES) then
@@ -1207,6 +1253,11 @@ begin
       raise EHashUtil.CreateFmt('EccPublicKeyFromHexa - Invalid length: %d', [hLength])
     else
       SHexa:=Hexa;
+    Buf:=HexStrToBytes(Copy(Hexa,hLength-4*ECC_BYTES+1,4*ECC_BYTES));
+    EccBytes2Native(Point.x,@Buf[0]);
+    EccBytes2Native(Point.y,@Buf[ECC_BYTES]);
+    if not EccPointIsOnCurve(Point) then
+      raise EHashUtil.Create('EccPublicKeyFromHexa - Point is not on the curve');
     Buf:=HexStrToBytes(SHexa);
     B:=StrToInt('$'+Copy(Hexa,hLength-1,2));
     PublicKey[0] := 2 + (B and $01);

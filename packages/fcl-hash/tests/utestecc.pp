@@ -25,6 +25,8 @@ type
     procedure TestSignVerifyRandomKeys;
     procedure TestEcdhAgreement;
     procedure TestNoRandomBytes;
+    procedure TestInvalidPublicKeys;
+    procedure TestImportX963;
   end;
 
 implementation
@@ -45,6 +47,43 @@ const
     ('FFFFFFFEFFFFFF00FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551','02285250EDC3BCFCD9027BBA12176D343A26035672D5B4A81155D4E37A2FD20BAE'),
     ('00000000000000000000000000000000123456789ABCDEF0FEDCBA9876543210','03CFF9839CBB40EC26ED68292ACA28802ACEBBE4AA28A244EEA5C890C03965B7EB')
   );
+
+const
+  Point2GCompressed = '037CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978';
+  Point2GUncompressed = '047CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978'
+                        +'07775510DB8ED040293D9AC69F7430DBBA7DADE63CE982299E04B79D227873D1';
+  // x=1 (no curve point), x >= p, and a valid x with prefixes 04 and 00
+  InvalidPublicKeys: array[0..3] of String = (
+    '020000000000000000000000000000000000000000000000000000000000000001',
+    '03FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF',
+    '047CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978',
+    '007CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978'
+  );
+
+// Public key from 66 hex digits, without validation
+function PublicKeyFromHex(const aHex: String): TEccPublicKey;
+var
+  lBytes: TBytes;
+begin
+  lBytes:=HexStrToBytes(aHex);
+  Move(lBytes[0],Result,SizeOf(Result));
+end;
+
+
+// True when EccPublicKeyFromHexa raises EHashUtil for aHex
+function PublicKeyFromHexaRaises(const aHex: String): Boolean;
+var
+  lKey: TEccPublicKey;
+begin
+  Result:=False;
+  try
+    EccPublicKeyFromHexa(lKey,aHex);
+  except
+    on EHashUtil do
+      Result:=True;
+  end;
+end;
+
 
 // Random source that always fails
 function FailingRandomBytes(aBytes: PByte; aCount: Integer): Boolean;
@@ -182,6 +221,53 @@ begin
   finally
     GetRandomBytes:=lSaved;
   end;
+end;
+
+
+procedure TTestECC.TestInvalidPublicKeys;
+var
+  I: Integer;
+  lPublicKey, lInvalidKey: TEccPublicKey;
+  lPrivateKey: TEccPrivateKey;
+  lHash: TEccHash;
+  lSignature: TEccSignature;
+  lSecret: TEccSecretKey;
+  lExport: array[0..2*ECC_BYTES] of Byte;
+begin
+  AssertTrue('Key made',EccMakeKey(lPublicKey,lPrivateKey));
+  FillChar(lHash,SizeOf(lHash),3);
+  AssertTrue('Signed',EcdsaSign(lPrivateKey,lHash,lSignature));
+  AssertTrue('Valid key exported',EccExportX963(PublicKeyFromHex(Point2GCompressed),@lExport,SizeOf(lExport)));
+  AssertEquals('Exported point',Point2GUncompressed,UpperCase(BytesToHexStr(BytesFromVar(@lExport,SizeOf(lExport)))));
+  AssertFalse('Valid compressed key accepted by EccPublicKeyFromHexa',PublicKeyFromHexaRaises(Point2GCompressed));
+  for I:=Low(InvalidPublicKeys) to High(InvalidPublicKeys) do
+    begin
+    lInvalidKey:=PublicKeyFromHex(InvalidPublicKeys[I]);
+    AssertFalse('No shared secret with '+InvalidPublicKeys[I],EcdhSharedSecret(lInvalidKey,lPrivateKey,lSecret));
+    AssertFalse('No verification with '+InvalidPublicKeys[I],EcdsaVerify(lInvalidKey,lHash,lSignature));
+    AssertFalse('No export of '+InvalidPublicKeys[I],EccExportX963(lInvalidKey,@lExport,SizeOf(lExport)));
+    AssertTrue('EccPublicKeyFromHexa rejects '+InvalidPublicKeys[I],PublicKeyFromHexaRaises(InvalidPublicKeys[I]));
+    end;
+end;
+
+
+procedure TTestECC.TestImportX963;
+var
+  lPoint, lBadPoint: TBytes;
+  lPublicKey: TEccPublicKey;
+begin
+  lPoint:=HexStrToBytes(Point2GUncompressed);
+  AssertTrue('Valid point imported',EccImportX963(@lPoint[0],Length(lPoint),lPublicKey));
+  AssertEquals('Imported key',Point2GCompressed,PublicKeyToHex(lPublicKey));
+  AssertTrue('Valid point imported from x and y',EccImportX963FromXY(@lPoint[1],ECC_BYTES,@lPoint[1+ECC_BYTES],ECC_BYTES,lPublicKey));
+  AssertEquals('Key imported from x and y',Point2GCompressed,PublicKeyToHex(lPublicKey));
+  AssertEquals('EccPublicKeyFromHexa with an uncompressed point',Point2GCompressed,PublicKeyToHex(EccPublicKeyFromHexa(Point2GUncompressed)));
+  AssertEquals('EccPublicKeyFromHexa with x and y',Point2GCompressed,PublicKeyToHex(EccPublicKeyFromHexa(Copy(Point2GUncompressed,3,128))));
+  lBadPoint:=Copy(lPoint);
+  lBadPoint[Length(lBadPoint)-1]:=lBadPoint[Length(lBadPoint)-1] xor 2;
+  AssertFalse('Point with a wrong y rejected',EccImportX963(@lBadPoint[0],Length(lBadPoint),lPublicKey));
+  AssertFalse('Point with a wrong y rejected from x and y',EccImportX963FromXY(@lBadPoint[1],ECC_BYTES,@lBadPoint[1+ECC_BYTES],ECC_BYTES,lPublicKey));
+  AssertTrue('EccPublicKeyFromHexa rejects a wrong y',PublicKeyFromHexaRaises(BytesToHexStr(lBadPoint)));
 end;
 
 
