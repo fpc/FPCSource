@@ -1168,16 +1168,18 @@ end;
 // @DP: CRT's dP bigint, @Q: CRT's dQ bigint, @: CRT's p bigint, @: CRT's q bigint, @Inv: CRT's qInv bigint
 function BICRT(var Context: TBigIntContext; BI, DP, DQ, P, Q, QInv: PBigInt): PBigInt;
 var
-  H, M1, M2: PBigInt;
+  H, M1, M2, M2P: PBigInt;
   IsNegative: Boolean;
 begin
   Context.ModOffset := BIGINT_P_OFFSET;
   M1 := BIModPower(Context, BICopy(BI), DP);
   Context.ModOffset := BIGINT_Q_OFFSET;
   M2 := BIModPower(Context, BI, DQ);
-  H := BISubtract(Context, BIAdd(Context, M1, P), BICopy(M2), IsNegative);
-  H := BIMultiply(Context, H, QInv);
   Context.ModOffset := BIGINT_P_OFFSET;
+  // m1 + p - (m2 mod p) is positive for any order of p and q
+  M2P := BIResidue(Context, BIClone(Context, M2^));
+  H := BISubtract(Context, BIAdd(Context, M1, P), M2P, IsNegative);
+  H := BIMultiply(Context, H, QInv);
   H := BIResidue(Context, H);
   Result := BIAdd(Context, M2, BIMultiply(Context, Q, H));
 end;

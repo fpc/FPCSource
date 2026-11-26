@@ -19,6 +19,7 @@ Type
     Procedure TestECC_Load;
     Procedure TestRSA_RS256Verify;
     Procedure TestRSA_PrivatePublicPEM_NoPassphrase;
+    Procedure TestRSA_SignCRTPLessThanQ;
   end;
 
 implementation
@@ -192,6 +193,48 @@ begin
   finally
     RSAFree(PublicRSA);
     RSAFree(PrivateRSA);
+  end;
+end;
+
+procedure TTestPEM.TestRSA_SignCRTPLessThanQ;
+const
+  KeyN = 'E00B841F439034CF534B24D368201E765357E140C626AAD330337F8F709F586B3E1F59C766B8B65365A233641E2E42E826E206B970E9C9539D2020DE642D3A5B';
+  KeyE = '010001';
+  KeyD = 'BA0275A82B44EFC36DC906830A8118296F1A98265A1D4258623D6F5B9CCA7EF15DFEC4DC44D1EBD7B4CD6E52004A7EA4A52DD2C159AE793B0FE65A7788C1CDE9';
+  KeyP = '764DDABF9C746153C5444912D29CE4CB78B57FA0364C947423A8CA31DCD4F2A5';
+  KeyQ = '01E4D06EFEEFDA8D7A70DFE8426CBB068037FE47501FC124A974E07CC2C962E8FF';
+  KeyDP = '564590300B381381B36988A0615668C2B8D422AE02EAF5977C29AAC991F0F8C1';
+  KeyDQ = '9C14CA9742CAFEDF5B758A85D0118A2F3F579AC7DDE1459754AC6D1E1CCDBE2B';
+  KeyQI = '224C778FE22D9A52A77769AFA3EF080E672BECBD687CAA4A6D81CE2A7A99F33D';
+  PayloadLen = 20;
+var
+  Key: TX509RSAPrivateKey;
+  PrivateRSA, PublicRSA: TRSA;
+  Payload, Signature, Verified: TBytes;
+  I, J, VerifiedLen: Integer;
+begin
+  Key.InitWithHexStrings(KeyN,KeyE,KeyD,KeyP,KeyQ,KeyDP,KeyDQ,KeyQI);
+  RSACreate(PrivateRSA);
+  RSACreate(PublicRSA);
+  try
+    RSAInitFromX509PrivateKey(PrivateRSA,Key);
+    RsaInitFromPublicKey(PublicRSA,HexStrToString(KeyN),HexStrToString(KeyE));
+    SetLength(Payload,PayloadLen);
+    SetLength(Signature,PrivateRSA.ModulusLen);
+    SetLength(Verified,PrivateRSA.ModulusLen);
+    for I:=1 to 50 do
+      begin
+      for J:=0 to PayloadLen-1 do
+        Payload[J]:=(I*31+J*7) and $FF;
+      AssertEquals('Signature '+IntToStr(I)+' length',PrivateRSA.ModulusLen,
+                   RSAEncryptSign(PrivateRSA,@Payload[0],PayloadLen,@Signature[0],True));
+      VerifiedLen:=RSADecryptVerify(PublicRSA,@Signature[0],@Verified[0],Length(Verified),True);
+      AssertEquals('Signature '+IntToStr(I)+' verifies with the public key',PayloadLen,VerifiedLen);
+      AssertTrue('Signature '+IntToStr(I)+' recovers the payload',CompareMem(@Verified[0],@Payload[0],PayloadLen));
+      end;
+  finally
+    RSAFree(PrivateRSA);
+    RSAFree(PublicRSA);
   end;
 end;
 
