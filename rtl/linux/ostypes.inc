@@ -31,6 +31,7 @@ CONST
     UTSNAME_DOMAIN_LENGTH    = UTSNAME_LENGTH;
     {$endif}
 
+   FD_CLOEXEC	   = 1;
    FD_MAXFDSET     = 1024;
    BITSINWORD      = 8*sizeof(cuLong);
    wordsinsigset   = SIG_MAXSIG DIV BITSINWORD;         // words in sigset_t
