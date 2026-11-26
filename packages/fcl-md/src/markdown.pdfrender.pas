@@ -199,6 +199,7 @@ type
     FOnGetImage: TMarkdownImageEvent;
     FLists : TLayoutLists;
     FCodeTokenColors : Array[TMarkdownCodeTokenKind] of TARGBColor;
+    FRunColor : TARGBColor;
 
     FLineWidth: TPDFFloat;
     FLayout : TLayoutData;
@@ -306,6 +307,8 @@ type
     Property BulletLevel : Integer Read FBulletLevel;
     Property CalculatedBlockQuoteIndent : Integer Read FCalculatedBlockQuoteIndent;
     Property Layout : TLayoutData read FLayout;
+    // Text colour of the items created by FlushTextRun; clNone uses the colour of the font context.
+    Property RunColor : TARGBColor read FRunColor write FRunColor;
   public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
@@ -1637,6 +1640,7 @@ begin
   FCodeTokenColors[ctkKey]:=RGBToColor(0,0,153);
   FCodeTokenColors[ctkSection]:=RGBToColor(0,0,153);
   FCodeTokenColors[ctkError]:=RGBToColor(204,0,0);
+  FRunColor:=clNone;
 
   fBaseFontSize:=10;
   FLayout.BaselineShiftCurrent:=0;
@@ -2043,7 +2047,10 @@ begin
       lX:=FLayout.CurrentIndent + FLayout.LineX;
       Item:=FLists.Items.NewItem(TLayoutItemKind.likText,lX,lY);
       item.BGColor:=GetTextBGColor(aContext);
-      item.color:=GetTexTARGBColor(aContext);
+      if FRunColor<>clNone then
+        Item.Color:=FRunColor
+      else
+        Item.Color:=GetTexTARGBColor(aContext);
       Item.Width:=lWidth;
       Item.Height:=lHeight;
       Item.Text:=lSeg;
@@ -2248,17 +2255,13 @@ end;
 
 procedure TMarkDownPDFRenderer.LayoutCodeToken(const aText: TMarkdownString; aKind: TMarkdownCodeTokenKind; const aContext: TFontContext);
 
-var
-  I, lFirst : Integer;
-  lColor : TARGBColor;
-
 begin
-  lFirst:=FLists.Items.Count;
-  FlushTextRun(aText,BaseFontSize,[],'',aContext,False);
-  lColor:=FCodeTokenColors[aKind];
-  if lColor<>clNone then
-    for I:=lFirst to FLists.Items.Count-1 do
-      FLists.Items[I].Color:=lColor;
+  RunColor:=FCodeTokenColors[aKind];
+  try
+    FlushTextRun(aText,BaseFontSize,[],'',aContext,False);
+  finally
+    RunColor:=clNone;
+  end;
 end;
 
 

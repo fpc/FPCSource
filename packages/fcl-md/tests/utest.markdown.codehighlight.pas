@@ -52,12 +52,21 @@ type
   TTokenRecordingPDFRenderer = class(TMarkDownPDFRenderer)
   private
     FTokens : TStringList;
+    FRunColors : TStringList;
+  protected
+    procedure FlushTextRun(const aText: TMarkdownString; const aFontSize: LongInt;
+      const aFontStyle: TFontStyles; const aLinkHref: TMarkdownString; const aContext : TFontContext;
+      const aDryRun: boolean); override;
   public
     constructor Create(aOwner : TComponent); override;
     destructor Destroy; override;
     procedure LayoutCodeToken(const aText : TMarkdownString; aKind : TMarkdownCodeTokenKind; const aContext : TFontContext); override;
     // Recorded tokens
     property Tokens : TStringList read FTokens;
+    // RunColor of every text run that is laid out, as text=color in hex, or text=none for clNone
+    property RunColors : TStringList read FRunColors;
+    // Text colour of the items created by FlushTextRun
+    property RunColor;
   end;
 
   { TTestCodeHighlightBase }
@@ -163,6 +172,7 @@ type
     procedure TestEmptyLineAdvances;
     procedure TestEmptyLineAdvancesUnhighlighted;
     procedure TestDefaultColors;
+    procedure TestTokenRunColors;
   end;
 
 implementation
@@ -245,14 +255,29 @@ constructor TTokenRecordingPDFRenderer.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
   FTokens:=TStringList.Create;
+  FRunColors:=TStringList.Create;
 end;
 
 
 destructor TTokenRecordingPDFRenderer.Destroy;
 
 begin
+  FreeAndNil(FRunColors);
   FreeAndNil(FTokens);
   inherited Destroy;
+end;
+
+
+procedure TTokenRecordingPDFRenderer.FlushTextRun(const aText: TMarkdownString; const aFontSize: LongInt;
+  const aFontStyle: TFontStyles; const aLinkHref: TMarkdownString; const aContext: TFontContext;
+  const aDryRun: boolean);
+
+begin
+  if RunColor=clNone then
+    FRunColors.Add(MarkdownToString(aText)+'=none')
+  else
+    FRunColors.Add(MarkdownToString(aText)+'='+HexStr(RunColor,6));
+  inherited FlushTextRun(aText,aFontSize,aFontStyle,aLinkHref,aContext,aDryRun);
 end;
 
 
@@ -1007,6 +1032,18 @@ begin
   AssertTrue('Comment has its own colour',FRenderer.CodeTokenColors[ctkComment]<>FRenderer.CodeTokenColors[ctkKeyword]);
   FRenderer.CodeTokenColors[ctkKeyword]:=$123456;
   AssertTrue('Colour can be set',FRenderer.CodeTokenColors[ctkKeyword]=$123456);
+end;
+
+
+procedure TTestPDFCodeHighlight.TestTokenRunColors;
+
+begin
+  FRenderer.CodeTokenColors[ctkKeyword]:=$123456;
+  FRenderer.CodeTokenColors[ctkNumber]:=$654321;
+  Render('```test'#10'begin 1'#10'```');
+  AssertEquals('Run colours','begin=123456| =none|1=654321',
+               StringToMarkdown(String.Join('|',FRenderer.RunColors.ToStringArray)));
+  AssertTrue('RunColor reset after the code block',FRenderer.RunColor=clNone);
 end;
 
 
