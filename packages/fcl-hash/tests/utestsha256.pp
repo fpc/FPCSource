@@ -23,6 +23,7 @@ type
     procedure TestSmallBase64;
     procedure TestSmallHMAC;
     procedure TestHMACStream;
+    procedure TestOver4GiB;
   end;
 
   { TTestECDSASHA256 }
@@ -201,6 +202,30 @@ begin
   finally
     S.Free;
   end;
+end;
+
+procedure TTestSHA256.TestOver4GiB;
+
+var
+  Data : TBytes;
+  Digest : AnsiString;
+
+begin
+{$IFDEF CPU64}
+  if GetEnvironmentVariable('FCLHASH_LARGE_TESTS')='' then
+    Ignore('Set FCLHASH_LARGE_TESTS to hash 4 GiB + 3 bytes');
+  try
+    SetLength(Data,(Int64(1) shl 32)+3);
+  except
+    on EOutOfMemory do
+      Ignore('Not enough memory for 4 GiB + 3 bytes');
+  end;
+  Digest:='';
+  TSHA256.DigestHexa(Data,Digest);
+  AssertEquals('Digest of 4 GiB + 3 zero bytes','930FA067940FF8D9F427E3A116B7598503C70CE7380D66FF65F8DE33D558F7F3',Digest);
+{$ELSE}
+  Ignore('Needs a 64-bit target');
+{$ENDIF}
 end;
 
 initialization

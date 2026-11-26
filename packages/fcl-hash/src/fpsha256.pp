@@ -49,7 +49,7 @@ Type
     procedure Compress; inline;
     procedure Final;
     procedure Init(Use224 : Boolean = False);
-    procedure Update(PBuf: PByte; Size: UInt32); overload;
+    procedure Update(PBuf: PByte; Size: SizeUInt); overload;
     procedure Update(const Value: TBytes); overload;
 {$IFDEF DEBUGSHA}
   private
@@ -68,7 +68,7 @@ Type
     procedure Init;
     function IsEqual(const ADigest: TSHA256Digest): Boolean;
     procedure OutputHexa(out Result: AnsiString);
-    procedure Update(PBuf: PByte; Size: UInt32); overload;
+    procedure Update(PBuf: PByte; Size: SizeUInt); overload;
     procedure Update(const Value: TBytes); overload;
 
     // Calculate SHA256, return digest as bytes.
@@ -78,8 +78,8 @@ Type
     // Calculate  SHA256, return digest as HEX encoded string
     class procedure DigestHexa(const Value: TBytes; out Result: AnsiString); static;
     // HMAC using SHA256 as hash
-    Class function HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; var aDigest: TSHA256Digest): Boolean; overload; static;
-    class function HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; Data2: PByte; DataSize2: UInt32; Data3: PByte; DataSize3: UInt32; var aDigest: TSHA256Digest): Boolean; overload; static;
+    Class function HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; var aDigest: TSHA256Digest): Boolean; overload; static;
+    class function HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; Data2: PByte; DataSize2: SizeUInt; Data3: PByte; DataSize3: SizeUInt; var aDigest: TSHA256Digest): Boolean; overload; static;
     // Calculate HMacSHA256, return digest as hex string.
     class function HMACHexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload; static;
     // Calculate SHA256 from a stream, return digest.
@@ -105,7 +105,7 @@ Type
     procedure Init;
     function IsEqual(const ADigest: TSHA224Digest): Boolean;
     procedure OutputHexa(out Result: AnsiString);
-    procedure Update(PBuf: PByte; Size: UInt32); overload;
+    procedure Update(PBuf: PByte; Size: SizeUInt); overload;
     procedure Update(const Value: TBytes); overload;
 
     // Calculate SHA224, return digest as bytes.
@@ -115,8 +115,8 @@ Type
     // Calculate  SHA224, return digest as HEX encoded string
     class procedure DigestHexa(const Value: TBytes; out Result: AnsiString); static;
     // HMAC using SHA224 as hash
-    Class function HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; var aDigest: TSHA224Digest): Boolean; overload; static;
-    class function HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; Data2: PByte; DataSize2: UInt32; Data3: PByte; DataSize3: UInt32; var aDigest: TSHA224Digest): Boolean; overload; static;
+    Class function HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; var aDigest: TSHA224Digest): Boolean; overload; static;
+    class function HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; Data2: PByte; DataSize2: SizeUInt; Data3: PByte; DataSize3: SizeUInt; var aDigest: TSHA224Digest): Boolean; overload; static;
     // Calculate HMacSHA224, return digest as hex string.
     class function HMACHexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload; static;
     // Calculate SHA224 from a stream, return digest.
@@ -310,14 +310,14 @@ begin
 //  Self.Init; // uncomment if you need security protection against memory inspection
 end;
 
-procedure TSHA256Base.Update(PBuf: PByte; Size: UInt32);
+procedure TSHA256Base.Update(PBuf: PByte; Size: SizeUInt);
 var
-  Len: UInt32;
+  Len: SizeUInt;
 begin
-  Inc(TotalLength, Int64(UInt32(Size)) * 8);
+  Inc(TotalLength, Int64(Size) * 8);
   while Size > 0 do
   begin
-    if (Sizeof(HashBuffer)-Self.Index) <= UInt32(Size) then
+    if (Sizeof(HashBuffer)-Self.Index) <= Size then
     begin
       Len := Sizeof(HashBuffer)-Self.Index;
       Move(PBuf^, HashBuffer[Self.Index], Len);
@@ -371,7 +371,7 @@ begin
 end;
 
 
-procedure TSHA256.Update(PBuf: PByte; Size: UInt32);
+procedure TSHA256.Update(PBuf: PByte; Size: SizeUInt);
 
 begin
   Base.Update(PBuf,Size);
@@ -425,7 +425,7 @@ begin
   SHA256.OutputHexa(Result);
 end;
 
-class function TSHA256.HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; var aDigest: TSHA256Digest): Boolean;
+class function TSHA256.HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; var aDigest: TSHA256Digest): Boolean;
 begin
   Result := HMAC(Key, KeySize, Data, DataSize, nil, 0, nil, 0, aDigest);
 end;
@@ -437,7 +437,7 @@ The SHA256 HMAC algorithm is:
        oPad is the byte $5c repeated 64 times
  If Key is more than 64 bytes it will be hashed to Key = SHA256(Key) instead
  If Key is less than 64 bytes it will be padded with zeros }
- class function TSHA256.HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; Data2: PByte; DataSize2: UInt32; Data3: PByte; DataSize3: UInt32; var aDigest: TSHA256Digest): Boolean;
+ class function TSHA256.HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; Data2: PByte; DataSize2: SizeUInt; Data3: PByte; DataSize3: SizeUInt; var aDigest: TSHA256Digest): Boolean;
 
 Type
   TBuf64 = array[0..63] of Byte;
@@ -615,7 +615,7 @@ begin
 end;
 
 
-procedure TSHA224.Update(PBuf: PByte; Size: UInt32);
+procedure TSHA224.Update(PBuf: PByte; Size: SizeUInt);
 
 begin
   Base.Update(PBuf,Size);
@@ -669,7 +669,7 @@ begin
   SHA224.OutputHexa(Result);
 end;
 
-class function TSHA224.HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; var aDigest: TSHA224Digest): Boolean;
+class function TSHA224.HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; var aDigest: TSHA224Digest): Boolean;
 begin
   Result := HMAC(Key, KeySize, Data, DataSize, nil, 0, nil, 0, aDigest);
 end;
@@ -681,7 +681,7 @@ The SHA224 HMAC algorithm is:
        oPad is the byte $5c repeated 64 times
  If Key is more than 64 bytes it will be hashed to Key = SHA224(Key) instead
  If Key is less than 64 bytes it will be padded with zeros }
- class function TSHA224.HMAC(Key: PByte; KeySize: UInt32; Data: PByte; DataSize: UInt32; Data2: PByte; DataSize2: UInt32; Data3: PByte; DataSize3: UInt32; var aDigest: TSHA224Digest): Boolean;
+ class function TSHA224.HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; Data2: PByte; DataSize2: SizeUInt; Data3: PByte; DataSize3: SizeUInt; var aDigest: TSHA224Digest): Boolean;
 
 Type
   TBuf64 = array[0..63] of Byte;
