@@ -149,7 +149,7 @@ end;
 
 {Internal Functions}
 
-{Perform a sanity check on bi}
+{Sanity check of BI with BIGINT_DEBUG defined, raising EHashUtil for a released or free-list bigint; otherwise always True}
 function BICheck(const BI: TBigInt): Boolean; inline;
 begin
   {$IFDEF BIGINT_DEBUG}
@@ -649,7 +649,8 @@ var
 begin
   J := 0;
   Offset := 0;
-  Result := BIAllocate(Context, (Size+BIGINT_COMP_BYTE_SIZE-1) div BIGINT_COMP_BYTE_SIZE);
+  // At least one component, holding 0 for empty input
+  Result := BIAllocate(Context, Max(1, (Size+BIGINT_COMP_BYTE_SIZE-1) div BIGINT_COMP_BYTE_SIZE));
   FillByte(Result^.Components^, Result^.Size*BIGINT_COMP_BYTE_SIZE, 0);
   for I := Size-1 downto 0 do
   begin
@@ -665,13 +666,13 @@ end;
 
 function BIImport(var Context: TBigIntContext; const Data: TBytes): PBigInt;
 begin
-  Result := BIImport(Context, @Data[0], Length(Data));
+  Result := BIImport(Context, PByte(Data), Length(Data));
 end;
 
 function BIImport(var Context: TBigIntContext; const Data: AnsiString): PBigInt; overload;
 
 begin
-  Result:=BIImport(Context,@Data[1],length(Data));
+  Result:=BIImport(Context,PByte(PAnsiChar(Data)),length(Data));
 end;
 
 

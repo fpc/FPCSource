@@ -5,7 +5,7 @@ unit utesthashutils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, fphashutils, fpsha256, fpsha512;
+  Classes, SysUtils, fpcunit, testregistry, fphashutils, fpsha256, fpsha512, fptlsbigint;
 
 type
 
@@ -23,6 +23,7 @@ type
     procedure TestDigestIsEqual;
     procedure TestBytesToVarSize;
     procedure TestStreamSeveralReads;
+    procedure TestBigIntImportEmpty;
   end;
 
 implementation
@@ -250,6 +251,30 @@ begin
     AssertEquals('SHA-384',lHexa,TSHA384.StreamHexa(lStream));
   finally
     lStream.Free;
+  end;
+end;
+
+
+procedure TTestHashUtils.TestBigIntImportEmpty;
+var
+  lContext: TBigIntContext;
+  lBI: PBigInt;
+  lOut: array[0..3] of Byte;
+begin
+  BIInitialize(lContext);
+  try
+    lBI:=BIImport(lContext,TBytes(nil));
+    AssertEquals('Empty TBytes: one component',1,lBI^.Size);
+    AssertEquals('Empty TBytes: value 0',0,BIBitCount(lBI));
+    FillChar(lOut,SizeOf(lOut),$EE);
+    BIExport(lContext,lBI,@lOut,SizeOf(lOut));
+    AssertEquals('Empty TBytes exported as zero',0,lOut[0] or lOut[1] or lOut[2] or lOut[3]);
+    lBI:=BIImport(lContext,AnsiString(''));
+    AssertEquals('Empty AnsiString: one component',1,lBI^.Size);
+    AssertEquals('Empty AnsiString: value 0',0,BIBitCount(lBI));
+    BIRelease(lContext,lBI);
+  finally
+    BITerminate(lContext);
   end;
 end;
 
