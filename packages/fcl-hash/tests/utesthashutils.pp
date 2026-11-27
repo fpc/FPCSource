@@ -20,6 +20,7 @@ type
     procedure TestHexStrToBytesInvalid;
     procedure TestFallbackGeneratorSeed;
     procedure TestCryptoGetRandomBytesFailure;
+    procedure TestFallbackGeneratorUnaligned;
     procedure TestConstantTimeEqual;
     procedure TestDigestIsEqual;
     procedure TestBytesToVarSize;
@@ -170,6 +171,35 @@ begin
   finally
     GetRandomBytes:=lSaved;
   end;
+end;
+
+
+procedure TTestHashUtils.TestFallbackGeneratorUnaligned;
+var
+  lSaved: TGetRandomBytes;
+  lAligned, lBuf: TBytes;
+  I: Integer;
+begin
+  lSaved:=GetRandomBytes;
+  try
+    GetRandomBytes:=@SeedOnlyRandomBytes;
+    lAligned:=[];
+    SetLength(lAligned,11);
+    SeedCalls:=0;
+    SeedLastByte:=$40;
+    AssertTrue('Aligned buffer filled',CryptoGetRandomBytes(PByte(lAligned),Length(lAligned)));
+    lBuf:=[];
+    SetLength(lBuf,13);
+    FillChar(lBuf[0],Length(lBuf),$EE);
+    SeedCalls:=0;
+    AssertTrue('Unaligned buffer filled',CryptoGetRandomBytes(@lBuf[1],11));
+  finally
+    GetRandomBytes:=lSaved;
+  end;
+  for I:=0 to 10 do
+    AssertEquals('Byte '+IntToStr(I)+' as with an aligned buffer',lAligned[I],lBuf[I+1]);
+  AssertEquals('Byte before the buffer unchanged',$EE,lBuf[0]);
+  AssertEquals('Byte after the buffer unchanged',$EE,lBuf[12]);
 end;
 
 

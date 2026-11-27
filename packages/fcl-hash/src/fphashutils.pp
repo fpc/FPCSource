@@ -424,8 +424,6 @@ begin
 end;
 
 type
-  TUInt32 = Cardinal;
-  PUInt32Array = ^TUInt32;
   TLecuyer = record
     rs1, rs2, rs3: UInt32;
     SeedCount: UInt32;
@@ -509,7 +507,10 @@ begin
     Lecuyer.Seed;
     Rounds := Count div SizeOf(UInt32);
     for I := 0 to Rounds-1 do
-      PUInt32Array(Buffer)[I] := Lecuyer.Next;
+    begin
+      R := Lecuyer.Next;
+      Move(R, Buffer[I*SizeOf(UInt32)], SizeOf(UInt32));
+    end;
     Remainder := Count mod SizeOf(UInt32);
     if Remainder > 0 then
     begin
