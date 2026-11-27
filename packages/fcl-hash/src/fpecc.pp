@@ -22,11 +22,14 @@ unit fpECC;
 interface
 
 const
-  // ASN.1 OID: 1.2.840.10045.3.1.7 <- secp256r1
+  // Byte size of a coordinate of secp256r1 (NIST P-256, ASN.1 OID 1.2.840.10045.3.1.7), the only curve of this unit
   secp256r1 = 32;
-  ECC_CURVE = secp256r1; // 32
-  ECC_BYTES = ECC_CURVE; // 32
-  NUM_ECC_DIGITS = ECC_BYTES div 8; // =4
+  // Byte size of a coordinate of the curve in use
+  ECC_CURVE = secp256r1;
+  // Byte size of a coordinate, a private key and a hash
+  ECC_BYTES = ECC_CURVE;
+  // Number of 64-bit digits in a coordinate
+  NUM_ECC_DIGITS = ECC_BYTES div 8;
   MAX_TRIES = 16;
 
 type
@@ -391,7 +394,7 @@ begin
   end;
 end;
 
-// Computes Result = Product mod Curve
+// Computes Result = Product mod p, with the fast reduction for the P-256 prime only
 // from http://www.nsa.gov/ia/_files/nist-routines.pdf
 procedure vli_mmod_fast(out Output: TVLI; var p_product: TVLI2);
 var
@@ -823,7 +826,7 @@ begin
   p1[0] := 1;
   vli_clear(Result);
   Result[0] := 1;
-  // Since curve_p == 3 (mod 4) for all supported curves, we can compute sqrt(a) = a^((curve_p + 1) / 4) (mod curve_p).
+  // sqrt(a) = a^((p + 1) / 4) (mod p) for the P-256 prime, where p = 3 (mod 4)
   vli_add(p1, Curve_P_32, p1); // p1 = curve_p + 1
   for I := vli_numBits(p1)-1 downto 2 do
   begin
