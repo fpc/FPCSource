@@ -19,6 +19,7 @@ type
     procedure TestBytesToVarPointer;
     procedure TestHexStrToBytesInvalid;
     procedure TestFallbackGeneratorSeed;
+    procedure TestCryptoGetRandomBytesFailure;
     procedure TestConstantTimeEqual;
     procedure TestDigestIsEqual;
     procedure TestBytesToVarSize;
@@ -128,6 +129,47 @@ begin
   for I:=0 to aCount-1 do
     aBytes[I]:=I+1;
   aBytes[aCount-1]:=SeedLastByte;
+end;
+
+
+// Random source that always fails, counted by SeedCalls
+function NoRandomBytes(aBytes: PByte; aCount: Integer): Boolean;
+begin
+  Inc(SeedCalls);
+  Result:=False;
+end;
+
+
+procedure TTestHashUtils.TestCryptoGetRandomBytesFailure;
+var
+  lSaved: TGetRandomBytes;
+  lBuf: TBytes;
+  lRaised, lResult: Boolean;
+begin
+  lSaved:=GetRandomBytes;
+  try
+    GetRandomBytes:=@NoRandomBytes;
+    SeedCalls:=0;
+    AssertTrue('Count 0 succeeds',CryptoGetRandomBytes(nil,0));
+    AssertTrue('Negative count succeeds',CryptoGetRandomBytes(nil,-1));
+    AssertEquals('No random source used for Count <= 0',0,SeedCalls);
+    lBuf:=[];
+    SetLength(lBuf,16);
+    FillChar(lBuf[0],Length(lBuf),$EE);
+    lRaised:=False;
+    lResult:=True;
+    try
+      lResult:=CryptoGetRandomBytes(PByte(lBuf),Length(lBuf));
+    except
+      on EHashUtil do
+        lRaised:=True;
+    end;
+    AssertFalse('No exception without random source',lRaised);
+    AssertFalse('False without random source',lResult);
+    AssertEquals('Buffer zeroed',0,lBuf[0] or lBuf[15]);
+  finally
+    GetRandomBytes:=lSaved;
+  end;
 end;
 
 

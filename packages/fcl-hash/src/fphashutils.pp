@@ -59,6 +59,8 @@ Procedure BytesEncodeBase64(Source: Tbytes; out Dest: AnsiString; const IsURL, M
 Function BytesEncodeBase64(Source: Tbytes; const IsURL, MultiLines, Padding: Boolean) : AnsiString;
 Function BytesToStr(const aBytes: TBytes): string; overload;
 
+// Fill Count bytes at Buffer from GetRandomBytes, or from a generator seeded by it when it fails.
+// False with a zeroed buffer when no random bytes are available; True without filling for Count <= 0.
 Function CryptoGetRandomBytes(Buffer: PByte; const Count: Integer; ZeroBytesAllowed: boolean = true): Boolean;
 Function ExtractBetween(const ASource,aStart,aEnd : String) : String;
 // True when the aSize bytes at A and B are equal. The time taken does not depend on the contents.
@@ -485,8 +487,10 @@ var
   R: UInt32;
   B: Byte;
 begin
+  if Count<=0 then
+    Exit(True);
   // Use the random source directly when it works; the Lecuyer generator is the fallback.
-  if (Count>0) and (Pointer(GetRandomBytes)<>Nil) and GetRandomBytes(Buffer,Count) then
+  if (Pointer(GetRandomBytes)<>Nil) and GetRandomBytes(Buffer,Count) then
     begin
     Result:=True;
     if not ZeroBytesAllowed then
@@ -501,16 +505,25 @@ begin
     end;
   Result := True;
   Lecuyer.ZeroBytesAllowed:=ZeroBytesAllowed;
-  Lecuyer.Seed;
-  Rounds := Count div SizeOf(UInt32);
-  for I := 0 to Rounds-1 do
-    PUInt32Array(Buffer)[I] := Lecuyer.Next;
-  Remainder := Count mod SizeOf(UInt32);
-  if Remainder > 0 then
-  begin
-    R := Lecuyer.Next;
-    Move(R, Buffer[Rounds*SizeOf(UInt32)], Remainder);
-    R:=R-R;// Silence compiler warning
+  try
+    Lecuyer.Seed;
+    Rounds := Count div SizeOf(UInt32);
+    for I := 0 to Rounds-1 do
+      PUInt32Array(Buffer)[I] := Lecuyer.Next;
+    Remainder := Count mod SizeOf(UInt32);
+    if Remainder > 0 then
+    begin
+      R := Lecuyer.Next;
+      Move(R, Buffer[Rounds*SizeOf(UInt32)], Remainder);
+      R:=R-R;// Silence compiler warning
+    end;
+  except
+    // Seeding failed
+    on EHashUtil do
+    begin
+      FillChar(Buffer^, Count, 0);
+      Result := False;
+    end;
   end;
 end;
 

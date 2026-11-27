@@ -248,7 +248,8 @@ begin
 {$ENDIF}
   Result:=nil;
   SetLength(Result,aLength);
-  CryptoGetRandomBytes(PByte(Result),aLength);
+  if not CryptoGetRandomBytes(PByte(Result),aLength) then
+    raise EQuicError.CreateCode(QUIC_INTERNAL_ERROR,'No random bytes available');
 end;
 
 
