@@ -4435,7 +4435,14 @@ implementation
              else if (high<256) then
                savesize:=32
              else
-               savesize:=(high+8) div 8
+               begin
+                 { there is no layout to be compatible with for sets with elements
+                   >255, so allocate only the bytes containing elements }
+                 setbase:=low and not(7);
+                 savesize:=(high+8-setbase) div 8;
+                 if savesize=3 then
+                   savesize:=4;
+               end;
            end
          else
            begin
