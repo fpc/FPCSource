@@ -27,6 +27,7 @@ Type
     Procedure TestRSA_VerifyDigestInfo;
     Procedure TestRSA_VerifyRejectsE3Forgery;
     Procedure TestPemFindTags;
+    Procedure TestPemLineIsTag;
     Procedure TestRSA_DecryptPadding;
     Procedure TestRSA_PSSModulusSizes;
     Procedure TestRSA_PSSNoPadding;
@@ -801,6 +802,17 @@ begin
     RSAFree(PublicRSA);
   end;
 end;
+
+procedure TTestPEM.TestPemLineIsTag;
+begin
+  AssertTrue('Tag alone',PemLineIsTag(_BEGIN_PUBLIC_KEY,_BEGIN_PUBLIC_KEY));
+  AssertTrue('Tag with spaces around it',PemLineIsTag('  '+_BEGIN_PUBLIC_KEY+#9' ',_BEGIN_PUBLIC_KEY));
+  AssertFalse('Tag followed by text',PemLineIsTag(_BEGIN_PUBLIC_KEY+'x',_BEGIN_PUBLIC_KEY));
+  AssertFalse('Text before the tag',PemLineIsTag('x'+_BEGIN_PUBLIC_KEY,_BEGIN_PUBLIC_KEY));
+  AssertFalse('Tag twice',PemLineIsTag(_BEGIN_PUBLIC_KEY+' '+_BEGIN_PUBLIC_KEY,_BEGIN_PUBLIC_KEY));
+  AssertFalse('Line shorter than the tag',PemLineIsTag('-----BEGIN',_BEGIN_PUBLIC_KEY));
+end;
+
 
 procedure TTestPEM.TestPemFindTags;
 var

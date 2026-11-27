@@ -311,7 +311,7 @@ begin
     begin
       inc(LineP,TagLen);
       while LineP^ in [' ',#9] do inc(LineP);
-      Result:=LineP^ in [#0,#10,#13];
+      exit(LineP^ in [#0,#10,#13]);
     end else if LineP^ in [' ',#9] then
       inc(LineP)
     else
