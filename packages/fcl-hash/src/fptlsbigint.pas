@@ -91,6 +91,8 @@ procedure BIRelease(var Context: TBigIntContext; BI: PBigInt);
 function BICopy(BI: PBigInt): PBigInt;
 function BIClone(var Context: TBigIntContext; const BI: TBigInt): PBigInt;
 
+// Write BI big-endian to Size bytes at Data, padded with leading zeros, and release BI when Release is True.
+// EHashUtil when BI does not fit in Size bytes; BI is released also then.
 procedure BIExport(var Context: TBigIntContext; BI: PBigInt; Data: PByte; Size: Integer; Release: boolean = true);
 function BIImport(var Context: TBigIntContext; Data: PByte; const Size: Integer): PBigInt; overload;
 function BIImport(var Context: TBigIntContext; const Data: TBytes): PBigInt; overload;
@@ -613,11 +615,12 @@ procedure BIExport(var Context: TBigIntContext; BI: PBigInt; Data: PByte;
 {Context: The bigint session context}
 {BI: The bigint to be converted}
 {Data: The converted data as a byte stream}
-{Size: The maximum size of the byte stream. Unused bytes will be zeroed}
+{Size: The size of the byte stream. Unused bytes will be zeroed. EHashUtil when the number does not fit}
 var
   I: Integer;
   J: Integer;
   K: Integer;
+  B: Byte;
 begin
   if not BICheck(BI^) then
     Exit;
@@ -628,10 +631,13 @@ begin
     begin
       for J := 0 to BIGINT_COMP_BYTE_SIZE - 1 do
       begin
-        Data[K]:=(BI^.Components[I] shr (J * 8)) and $ff;
-        Dec(K);
-        if K < 0 then
-          Exit;
+        B := (BI^.Components[I] shr (J * 8)) and $ff;
+        if K >= 0 then
+        begin
+          Data[K] := B;
+          Dec(K);
+        end else if B <> 0 then
+          raise EHashUtil.CreateFmt('Number does not fit in %d bytes', [Size]);
       end;
     end;
   finally

@@ -24,6 +24,7 @@ type
     procedure TestBytesToVarSize;
     procedure TestStreamSeveralReads;
     procedure TestBigIntImportEmpty;
+    procedure TestBigIntExportSize;
   end;
 
 implementation
@@ -273,6 +274,34 @@ begin
     AssertEquals('Empty AnsiString: one component',1,lBI^.Size);
     AssertEquals('Empty AnsiString: value 0',0,BIBitCount(lBI));
     BIRelease(lContext,lBI);
+  finally
+    BITerminate(lContext);
+  end;
+end;
+
+
+procedure TTestHashUtils.TestBigIntExportSize;
+var
+  lContext: TBigIntContext;
+  lOut: array[0..3] of Byte;
+  lRaised: Boolean;
+begin
+  BIInitialize(lContext);
+  try
+    FillChar(lOut,SizeOf(lOut),$EE);
+    BIExport(lContext,BIImport(lContext,TBytes([$01,$02])),@lOut,3);
+    AssertEquals('Padded with a leading zero','000102',UpperCase(BytesToHexStr(BytesFromVar(@lOut,3))));
+    AssertEquals('Byte after Size unchanged',$EE,lOut[3]);
+    BIExport(lContext,BIImport(lContext,TBytes([$00,$00,$05])),@lOut,1);
+    AssertEquals('Leading zero bytes may be dropped',5,lOut[0]);
+    lRaised:=False;
+    try
+      BIExport(lContext,BIImport(lContext,TBytes([$01,$02])),@lOut,1);
+    except
+      on EHashUtil do
+        lRaised:=True;
+    end;
+    AssertTrue('A number that does not fit raises EHashUtil',lRaised);
   finally
     BITerminate(lContext);
   end;
