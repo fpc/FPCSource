@@ -22,6 +22,7 @@ type
     procedure TestConstantTimeEqual;
     procedure TestDigestIsEqual;
     procedure TestBytesToVarSize;
+    procedure TestStreamSeveralReads;
   end;
 
 implementation
@@ -219,6 +220,37 @@ begin
   AssertEquals('Byte after aSize unchanged with empty input',$EE,lBuffer[4]);
   BytesToVar(TBytes([1]),lBuffer,0);
   AssertEquals('Size 0 changes nothing',0,lBuffer[0]);
+end;
+
+
+procedure TTestHashUtils.TestStreamSeveralReads;
+var
+  lData: TBytes;
+  lStream: TBytesStream;
+  I: Integer;
+  lHexa: AnsiString;
+begin
+  lData:=[];
+  SetLength(lData,200000);
+  for I:=0 to Length(lData)-1 do
+    lData[I]:=(I*7+I shr 8) and $FF;
+  lStream:=TBytesStream.Create(lData);
+  try
+    TSHA256.DigestHexa(lData,lHexa);
+    lStream.Position:=0;
+    AssertEquals('SHA-256',lHexa,TSHA256.StreamHexa(lStream));
+    TSHA224.DigestHexa(lData,lHexa);
+    lStream.Position:=0;
+    AssertEquals('SHA-224',lHexa,TSHA224.StreamHexa(lStream));
+    TSHA512.DigestHexa(lData,lHexa);
+    lStream.Position:=0;
+    AssertEquals('SHA-512',lHexa,TSHA512.StreamHexa(lStream));
+    TSHA384.DigestHexa(lData,lHexa);
+    lStream.Position:=0;
+    AssertEquals('SHA-384',lHexa,TSHA384.StreamHexa(lStream));
+  finally
+    lStream.Free;
+  end;
 end;
 
 

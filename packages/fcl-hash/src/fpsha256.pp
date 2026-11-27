@@ -499,15 +499,17 @@ class procedure TSHA256.Stream(aStream: TStream; out aDigest: TSHA256Digest);
 
 var
   aLen : LongInt;
-  Buffer: array[0 .. 64*1024 - 1] of Byte;
+  lBuffer: TBytes;
   SHA256: TSHA256;
 
 begin
+  lBuffer:=Nil;
+  SetLength(lBuffer,64*1024);
   SHA256.Init;
   repeat
-     aLen:=aStream.Read(Buffer, Length(Buffer));
+     aLen:=aStream.Read(lBuffer[0], Length(lBuffer));
      if aLen>0 then
-       SHA256.Update(PByte(Buffer),aLen);
+       SHA256.Update(PByte(lBuffer),aLen);
   until aLen=0;
   SHA256.Final;
   aDigest:=SHA256.Digest;
@@ -748,15 +750,17 @@ class procedure TSHA224.Stream(aStream: TStream; out aDigest: TSHA224Digest);
 
 var
   aLen : LongInt;
-  Buffer: array[0 .. 64*1024 - 1] of Byte;
+  lBuffer: TBytes;
   SHA224: TSHA224;
 
 begin
+  lBuffer:=Nil;
+  SetLength(lBuffer,64*1024);
   SHA224.Init;
   repeat
-     aLen:=aStream.Read(Buffer, Length(Buffer));
+     aLen:=aStream.Read(lBuffer[0], Length(lBuffer));
      if aLen>0 then
-       SHA224.Update(PByte(Buffer),aLen);
+       SHA224.Update(PByte(lBuffer),aLen);
   until aLen=0;
   SHA224.Final;
   aDigest:=SHA224.Digest;

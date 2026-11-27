@@ -552,13 +552,15 @@ class procedure TSHA512.Stream(aStream: TStream; out aDigest: TSHA512Digest);
 
 var
   aLen : LongInt;
-  lBuffer: array[0 .. 64*1024 - 1] of Byte;
+  lBuffer: TBytes;
   SHA512: TSHA512;
 
 begin
+  lBuffer:=Nil;
+  SetLength(lBuffer,64*1024);
   SHA512.Init;
   repeat
-     aLen:=aStream.Read(lBuffer, Length(lBuffer));
+     aLen:=aStream.Read(lBuffer[0], System.Length(lBuffer));
      if aLen>0 then
        SHA512.Update(PByte(lBuffer),aLen);
   until aLen=0;
@@ -819,7 +821,7 @@ begin
   SHA384.Init;
   SetLength(lBuffer,BUFFER_SIZE);
   repeat
-     aLen:=aStream.Read(lBuffer, BUFFER_SIZE);
+     aLen:=aStream.Read(lBuffer[0], BUFFER_SIZE);
      if aLen = 0 then
        Break;
      SHA384.Update(PByte(lBuffer),aLen);
