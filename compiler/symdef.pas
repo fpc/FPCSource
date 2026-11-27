@@ -4413,8 +4413,9 @@ implementation
 
     constructor tsetdef.create(def: tdef; low, high: asizeint; doregister: boolean);
       var
-        setallocbits: aint;
-        packedsavesize: aint;
+        { asizeint: aint is too small on 8/16 bit CPUs for sets of up to 8 KB }
+        setallocbits: asizeint;
+        packedsavesize: asizeint;
         actual_setalloc: ShortInt;
       begin
          inherited create(setdef,doregister);
