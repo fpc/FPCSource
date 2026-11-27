@@ -176,12 +176,12 @@ Var
 
 begin
   Result:=Nil;
-  I:=Count-1;
-  While (Result=Nil) and (I>=0) do
+  I:=0;
+  While (Result=Nil) and (I<Count) do
     If (CompareText(Value,Items[i].Name)=0) then
       Result:=Items[i]
     else
-      Dec(i);
+      Inc(i);
 end;
 
 procedure TParams.GetParamList(List: TList; const ParamNames: string);
