@@ -4435,7 +4435,7 @@ implementation
              else if (high<256) then
                savesize:=32
              else
-               savesize:=(high+7) div 8
+               savesize:=(high+8) div 8
            end
          else
            begin

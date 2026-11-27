@@ -485,9 +485,18 @@ implementation
               end;
           end;
 
+        { type to which constant integer set elements are converted }
+        function constelementdef : tdef;
+          begin
+            if max_set_element<=high(byte) then
+              result:=u8inttype
+            else
+              result:=u16inttype;
+          end;
+
         procedure do_set(pos : longint);
           begin
-            if (pos and not $ff)<>0 then
+            if (pos<0) or (pos>max_set_element) then
               begin
                 Message(parser_e_illegal_set_expr);
                 exit;
@@ -603,8 +612,8 @@ implementation
                                  end
                                else
                                  begin
-                                   inserttypeconv(p3,u8inttype);
-                                   inserttypeconv(p2,u8inttype);
+                                   inserttypeconv(p3,constelementdef);
+                                   inserttypeconv(p2,constelementdef);
                                  end;
 
                               if tordconstnode(p2).value.svalue>tordconstnode(p3).value.svalue then
@@ -644,7 +653,7 @@ implementation
                           else if not(is_integer(p2.resultdef)) and first then
                             hdef:=p2.resultdef
                           else
-                            inserttypeconv(p2,u8inttype);
+                            inserttypeconv(p2,constelementdef);
 
                           if not(is_integer(p2.resultdef)) then
                             update_constsethi(p2.resultdef,true);
@@ -684,7 +693,12 @@ implementation
               first:=false;
             end;
           if (hdef=nil) then
-            hdef:=u8inttype;
+            begin
+              if constsethi>high(byte) then
+                hdef:=constelementdef
+              else
+                hdef:=u8inttype;
+            end;
          end
         else
          begin

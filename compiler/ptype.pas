@@ -1431,7 +1431,7 @@ implementation
                { don't forget that min can be negativ  PM }
                enumdef :
                  if (tenumdef(tt2).min>=0) and
-                    (tenumdef(tt2).max<=255) then
+                    (tenumdef(tt2).max<=max_set_element) then
                   // !! def:=csetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max),true)
                   def:=csetdef.create(tt2,tenumdef(tt2).min,tenumdef(tt2).max,true)
                  else
@@ -1451,7 +1451,7 @@ implementation
                    else if (torddef(tt2).ordtype<>uvoid) and
                       (torddef(tt2).low>=0) then
                      // !! def:=csetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high),true)
-                     if Torddef(tt2).high>int64(high(byte)) then
+                     if Torddef(tt2).high>max_set_element then
                        message(sym_e_ill_type_decl_set)
                      else
                        def:=csetdef.create(tt2,torddef(tt2).low.svalue,torddef(tt2).high.svalue,true)

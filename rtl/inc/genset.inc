@@ -19,7 +19,8 @@
  ****************************************************************************}
 
 const
-  maxsetsize = 32;
+  { 65536 elements }
+  maxsetsize = 8192;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_LOAD_SMALL}
 {

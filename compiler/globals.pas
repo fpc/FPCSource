@@ -778,6 +778,8 @@ Const
 {$endif ARM}
     function floating_point_range_check_error : boolean;
     function use_dotted_functions: boolean;
+    { returns the highest ordinal value allowed as set element in the current mode }
+    function max_set_element: asizeint;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
@@ -1667,6 +1669,16 @@ implementation
         result:=
           (target_info.system in systems_dotted_function_names) and
           (target_info.abi<>abi_powerpc_elfv2);
+      end;
+
+
+    function max_set_element: asizeint;
+      begin
+        { TP and Delphi are limited to sets with 256 elements }
+        if ([m_tp7,m_delphi]*current_settings.modeswitches)<>[] then
+          result:=255
+        else
+          result:=65535;
       end;
 
 {****************************************************************************
