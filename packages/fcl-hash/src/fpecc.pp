@@ -912,21 +912,43 @@ begin
   Result := True;
 end;
 
-function EccImportX963FromXY(InputX: PByteBuffer; InputXLen: Integer; InputY: PByteBuffer; InputYLen: Integer; out PublicKey: TEccPublicKey): Boolean;
+type
+  TEccCoordinate = array[0..ECC_BYTES-1] of Byte;
+
+// Big-endian coordinate of aLen bytes as ECC_BYTES bytes: shorter values are padded with leading zeros,
+// longer values may only have leading zeros. False for other input.
+function EccPadCoordinate(Input: PByteBuffer; aLen: Integer; out Coordinate: TEccCoordinate): Boolean;
 var
-  Compressed: PByteBuffer;
-  Point: TEccPoint;
   I: Integer;
 begin
   Result := False;
-  EccBytes2Native(Point.x, InputX);
-  EccBytes2Native(Point.y, InputY);
+  FillChar(Coordinate, SizeOf(Coordinate), 0);
+  if (Input = nil) or (aLen <= 0) then
+    Exit;
+  for I := 0 to aLen-ECC_BYTES-1 do
+    if Input^[I] <> 0 then
+      Exit;
+  if aLen > ECC_BYTES then
+    Move(Input^[aLen-ECC_BYTES], Coordinate[0], ECC_BYTES)
+  else
+    Move(Input^[0], Coordinate[ECC_BYTES-aLen], aLen);
+  Result := True;
+end;
+
+function EccImportX963FromXY(InputX: PByteBuffer; InputXLen: Integer; InputY: PByteBuffer; InputYLen: Integer; out PublicKey: TEccPublicKey): Boolean;
+var
+  X, Y: TEccCoordinate;
+  Point: TEccPoint;
+begin
+  Result := False;
+  if not EccPadCoordinate(InputX, InputXLen, X) or not EccPadCoordinate(InputY, InputYLen, Y) then
+    Exit;
+  EccBytes2Native(Point.x, @X);
+  EccBytes2Native(Point.y, @Y);
   if not EccPointIsOnCurve(Point) then
     Exit;
-  Compressed := @PublicKey;
-  for I := 0 to ECC_BYTES-1 do
-    Compressed^[I+1] := InputX^[I];
-  Compressed^[0] := 2 + (InputY^[ECC_BYTES-1] and $01);
+  Move(X[0], PublicKey[1], ECC_BYTES);
+  PublicKey[0] := 2 + (Y[ECC_BYTES-1] and $01);
   Result := True;
 end;
 

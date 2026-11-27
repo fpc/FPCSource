@@ -28,6 +28,7 @@ type
     procedure TestInvalidPublicKeys;
     procedure TestImportX963;
     procedure TestRandomScalarRejection;
+    procedure TestImportX963FromXYLengths;
   end;
 
 implementation
@@ -290,6 +291,36 @@ begin
   AssertFalse('Point with a wrong y rejected',EccImportX963(@lBadPoint[0],Length(lBadPoint),lPublicKey));
   AssertFalse('Point with a wrong y rejected from x and y',EccImportX963FromXY(@lBadPoint[1],ECC_BYTES,@lBadPoint[1+ECC_BYTES],ECC_BYTES,lPublicKey));
   AssertTrue('EccPublicKeyFromHexa rejects a wrong y',PublicKeyFromHexaRaises(BytesToHexStr(lBadPoint)));
+end;
+
+
+procedure TTestECC.TestImportX963FromXYLengths;
+const
+  // 379*G: x starts with a zero byte; 43*G: y starts with a zero byte
+  PointXZero = '04005543894AF3D00ED7D740ABDBD75C96B06877B787DB5F70EEA78B90A8D7C00A'
+               +'BB4C85A3D8EA29EFAAFA24406912DD84D5B14DC32BF656EF6C6BD58A5D943F92';
+  CompressedXZero = '02005543894AF3D00ED7D740ABDBD75C96B06877B787DB5F70EEA78B90A8D7C00A';
+  PointYZero = '04986AE2506F1FF104D04230861D8F4B498F4BC4C6D009B30F7544DC129B82D28D'
+               +'003CCCC0A6460E0AE328A4D97D3C7B61D86FC6289C189F2525110C441BB07E97';
+  CompressedYZero = '03986AE2506F1FF104D04230861D8F4B498F4BC4C6D009B30F7544DC129B82D28D';
+var
+  P, Padded: TBytes;
+  lKey: TEccPublicKey;
+begin
+  P:=HexStrToBytes(PointXZero);
+  AssertTrue('x of 31 bytes',EccImportX963FromXY(@P[2],ECC_BYTES-1,@P[1+ECC_BYTES],ECC_BYTES,lKey));
+  AssertEquals('Key with x of 31 bytes',CompressedXZero,PublicKeyToHex(lKey));
+  P:=HexStrToBytes(PointYZero);
+  AssertTrue('y of 31 bytes',EccImportX963FromXY(@P[1],ECC_BYTES,@P[2+ECC_BYTES],ECC_BYTES-1,lKey));
+  AssertEquals('Key with y of 31 bytes',CompressedYZero,PublicKeyToHex(lKey));
+  // x of 33 bytes with a leading zero, as in an ASN.1 INTEGER
+  Padded:=Concat(TBytes([0]),Copy(P,1,ECC_BYTES));
+  AssertTrue('x of 33 bytes with a leading zero',EccImportX963FromXY(@Padded[0],ECC_BYTES+1,@P[1+ECC_BYTES],ECC_BYTES,lKey));
+  AssertEquals('Key with x of 33 bytes',CompressedYZero,PublicKeyToHex(lKey));
+  Padded[0]:=1;
+  AssertFalse('x of 33 bytes with a non-zero first byte',EccImportX963FromXY(@Padded[0],ECC_BYTES+1,@P[1+ECC_BYTES],ECC_BYTES,lKey));
+  AssertFalse('Empty x',EccImportX963FromXY(@P[1],0,@P[1+ECC_BYTES],ECC_BYTES,lKey));
+  AssertFalse('Nil y',EccImportX963FromXY(@P[1],ECC_BYTES,nil,ECC_BYTES,lKey));
 end;
 
 
