@@ -238,6 +238,10 @@ begin
     // ensure that the data we want to erase is released
     FData[Position] := Default(T);
     Move(FData[Position+1], FData[Position], (FDataSize - Position) * SizeOf(T));
+    // the vacated last slot still holds the moved item's bytes: clear them
+    // without changing the reference count
+    if IsManagedType(T) then
+      FillChar(FData[FDataSize], SizeOf(T), 0);
   end;
 end;
 

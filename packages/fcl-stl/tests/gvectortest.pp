@@ -12,6 +12,7 @@ type vectorlli=specialize TVector<longint>;
       a,b:longint;
      end;
      vectorrec=specialize TVector<rec>;
+     vectorintf=specialize TVector<IInterface>;
 
 type TGVectorTest = class(TTestCase)
   Published
@@ -20,6 +21,7 @@ type TGVectorTest = class(TTestCase)
     procedure PopbackTest;
     procedure InsertEraseTest;
     procedure MutableTest;
+    procedure EraseManagedTest;
   public
     procedure Setup;override;
   private
@@ -102,6 +104,65 @@ begin
   dat.mutable[0]^.b:=47;
   AssertEquals('Wrong data', 45, dat[0].a);
   AssertEquals('Wrong data', 47, dat[0].b);
+end;
+
+type
+  { counts its references and frees nothing when the count reaches 0, so a
+    count that goes wrong is read rather than freeing memory still in use }
+  TCounted = class(TObject, IInterface)
+    count: longint;
+    function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid: tguid; out obj): longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+  end;
+
+function TCounted.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid: tguid; out obj): longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+  pointer(obj):=nil;
+  result:=longint($80004002);
+end;
+
+function TCounted._AddRef: longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+  inc(count);
+  result:=count;
+end;
+
+function TCounted._Release: longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+  dec(count);
+  result:=count;
+end;
+
+procedure TGVectorTest.EraseManagedTest;
+var intfs:vectorintf;
+    a,b,c:TCounted;
+
+  { the reference converted for the call is released when this returns }
+  procedure push(o:TCounted);
+  begin
+    intfs.pushBack(o);
+  end;
+
+begin
+  a:=TCounted.create;
+  b:=TCounted.create;
+  c:=TCounted.create;
+  intfs:=vectorintf.create;
+  push(a);
+  push(b);
+  intfs.erase(0);
+  AssertEquals('Wrong count of erased item', 0, a.count);
+  AssertEquals('Wrong count after erase', 1, b.count);
+  push(c);
+  AssertEquals('Wrong count after push back', 1, b.count);
+  AssertEquals('Wrong count of pushed item', 1, c.count);
+  intfs.free;
+  AssertEquals('Wrong count after free', 0, b.count);
+  AssertEquals('Wrong count of pushed item after free', 0, c.count);
+  a.free;
+  b.free;
+  c.free;
 end;
 
 procedure TGVectorTest.Setup;
