@@ -313,7 +313,7 @@ begin
   repeat
     y := x mod 256;
     x := x div 256;
-    S:=AnsiChar(y);
+    S:=S+AnsiChar(y);
   until x = 0;
   if neg then
     S[Length(S)]:=AnsiChar(Ord(S[Length(S)]) or $80);

@@ -34,6 +34,7 @@ type
     procedure TestBitStringContentBounded;
     procedure TestBitStringNestingLimit;
     procedure TestDebugBitStringWithoutContent;
+    procedure TestEncodeUInt;
   end;
 
 implementation
@@ -240,6 +241,28 @@ begin
       lRaised:=True;
   end;
   AssertTrue('ASNDebug raises EHashUtil for a bit string without unused-bits byte',lRaised);
+end;
+
+
+procedure TTestASN.TestEncodeUInt;
+
+  // Hex of ASNEncodeUInt(aValue)
+  function Encode(aValue: Integer): String;
+  var
+    lBytes: TBytes;
+  begin
+    lBytes:=[];
+    ASNEncodeUInt(aValue,lBytes);
+    Result:=UpperCase(BytesToHexStr(lBytes));
+  end;
+
+begin
+  AssertEquals('0','00',Encode(0));
+  AssertEquals('255','FF',Encode(255));
+  AssertEquals('300','012C',Encode(300));
+  AssertEquals('65536','010000',Encode(65536));
+  AssertEquals('$12345678','12345678',Encode($12345678));
+  AssertEquals('-1 as unsigned 32 bit','FFFFFFFF',Encode(-1));
 end;
 
 
