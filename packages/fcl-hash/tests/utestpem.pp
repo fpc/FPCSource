@@ -821,6 +821,17 @@ begin
 
     List.Text:='AAAA'+sLineBreak+_END_PUBLIC_KEY;
     AssertFalse('End without begin',PemFindTags(List,_BEGIN_PUBLIC_KEY,_END_PUBLIC_KEY,StartIndex,EndIndex));
+
+    List.Text:=_BEGIN_PUBLIC_KEY+sLineBreak+'AAAA'+sLineBreak+_BEGIN_PUBLIC_KEY+sLineBreak+'BBBB'+sLineBreak+_END_PUBLIC_KEY;
+    AssertTrue('Truncated block before a complete one',PemFindTags(List,_BEGIN_PUBLIC_KEY,_END_PUBLIC_KEY,StartIndex,EndIndex));
+    AssertEquals('Begin line of the complete block',2,StartIndex);
+    AssertEquals('End line of the complete block',4,EndIndex);
+
+    List.Text:=_BEGIN_PUBLIC_KEY+sLineBreak+'AAAA'+sLineBreak+_END_PUBLIC_KEY+sLineBreak
+               +_BEGIN_PUBLIC_KEY+sLineBreak+'BBBB'+sLineBreak+_END_PUBLIC_KEY;
+    AssertTrue('Two complete blocks',PemFindTags(List,_BEGIN_PUBLIC_KEY,_END_PUBLIC_KEY,StartIndex,EndIndex));
+    AssertEquals('Begin line of the first block',0,StartIndex);
+    AssertEquals('End line of the first block',2,EndIndex);
   finally
     List.Free;
   end;

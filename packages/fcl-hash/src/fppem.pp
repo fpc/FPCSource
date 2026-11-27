@@ -62,6 +62,8 @@ function PemParseValidUntil(List: TStrings): String;
 
 function PemLineIsTag(const Line, Tag: string): boolean; // true if Line contains Tag, ignoring leading and trailing spaces
 function PemLineIsBase64(const Line: string): boolean; // true if Line contains only spaces and base64 chars
+// Line indexes of the first complete BeginTag..EndTag block without another BeginTag inside;
+// False and both indexes 0 when there is none.
 function PemFindTags(List: TStrings; const BeginTag, EndTag: string; out StartIndex, EndIndex: integer): boolean;
 function PemExtractBetween(const PEM, BeginTag, EndTag: String): String;
 function PemToDER(const PEM, BeginTag, EndTag: String): TBytes; overload;
@@ -331,7 +333,12 @@ begin
         if PemLineIsTag(List[EndIndex],EndTag) then
           exit(true)
         else
+        begin
+          // A later BeginTag starts a new block
+          if PemLineIsTag(List[EndIndex],BeginTag) then
+            StartIndex:=EndIndex;
           inc(EndIndex);
+        end;
       // No EndTag after this BeginTag
       break;
     end else
