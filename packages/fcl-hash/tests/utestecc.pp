@@ -30,6 +30,7 @@ type
     procedure TestRandomScalarRejection;
     procedure TestImportX963FromXYLengths;
     procedure TestSignRetriesZeroS;
+    procedure TestVerifySmallMultipleKeys;
   end;
 
 implementation
@@ -178,13 +179,11 @@ var
   lHash: TEccHash;
 begin
   for I:=Low(KeyVectors) to High(KeyVectors) do
-    // Keys whose public key is not a small multiple of G
-    if I in [5,6,8,9,10,11] then
-      for J:=1 to 5 do
-        begin
-        FillChar(lHash,SizeOf(lHash),I*16+J);
-        CheckSignVerify('Key '+KeyVectors[I,0]+' hash '+IntToStr(J),PrivateKeyFromHex(KeyVectors[I,0]),lHash);
-        end;
+    for J:=0 to 5 do
+      begin
+      FillChar(lHash,SizeOf(lHash),(I*16+J)*Ord(J>0));
+      CheckSignVerify('Key '+KeyVectors[I,0]+' hash '+IntToStr(J),PrivateKeyFromHex(KeyVectors[I,0]),lHash);
+      end;
 end;
 
 
@@ -402,6 +401,40 @@ begin
     lZero:=lZero and (lSignature[I]=0);
   AssertFalse('s is not 0',lZero);
   AssertTrue('Signature verifies',EcdsaVerify(PublicKeyFromHex(KeyVectors[9,1]),lHash,lSignature));
+end;
+
+
+procedure TTestECC.TestVerifySmallMultipleKeys;
+const
+  // Public key G, 2G, 3G, -G, -2G; hash; signature r and s, made with OpenSSL
+  Vectors: array[0..4, 0..2] of String = (
+    ('036B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296','2222222222222222222222222222222222222222222222222222222222222222',
+     '110E5725EC248FFA7233704DE2D75E624B91125CC6E4ED49FA21542EFF678CD4A5D7E812FC76F09197786B68B34F9D42B2778CD296D24B15B482AEFEFB1B42DB'),
+    ('037CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978','3333333333333333333333333333333333333333333333333333333333333333',
+     '7B433A623E487E3DC2DCD49DB5015F89EFD2056CBAAC2A893E36313E3F8EF7F37729390289CC409FEA055BB230F76E80F5E49E5A9A63BFD2BA81E36A10E30971'),
+    ('025ECBE4D1A6330A44C8F7EF951D4BF165E6C6B721EFADA985FB41661BC6E7FD6C','4444444444444444444444444444444444444444444444444444444444444444',
+     '80BCCC579838690CA1DEF9BE75D3C1890453DFCEC72B0D32A082D5B942FF6815DE48269D75B1C32614F89F002E20BCC869A0906B91CDC2DBCAF65145D28787FA'),
+    ('026B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296','3333333333333333333333333333333333333333333333333333333333333333',
+     '070B5EDF5388033F287AAA297BE56EE16D44273A71A711ED38AE3768115EBFAF0BD6DCE27257D86D61114154F297079DEC7A6166C436AF64ED0CB3CD36E99B8B'),
+    ('027CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978','2222222222222222222222222222222222222222222222222222222222222222',
+     '02533F449B404FC03E8E5CDC0038B59245718D16E3D8E4DD78BBD5C1AA3B54B5B35B3E74A7663CFD25E97B1E08641C8545918264647102F7BD69D01494B7E4ED')
+  );
+var
+  I: Integer;
+  lBytes: TBytes;
+  lHash: TEccHash;
+  lSignature: TEccSignature;
+begin
+  for I:=Low(Vectors) to High(Vectors) do
+    begin
+    lBytes:=HexStrToBytes(Vectors[I,1]);
+    Move(lBytes[0],lHash,SizeOf(lHash));
+    lBytes:=HexStrToBytes(Vectors[I,2]);
+    Move(lBytes[0],lSignature,SizeOf(lSignature));
+    AssertTrue('OpenSSL signature verifies for key '+Vectors[I,0],EcdsaVerify(PublicKeyFromHex(Vectors[I,0]),lHash,lSignature));
+    lHash[31]:=lHash[31] xor 1;
+    AssertFalse('Other hash rejected for key '+Vectors[I,0],EcdsaVerify(PublicKeyFromHex(Vectors[I,0]),lHash,lSignature));
+    end;
 end;
 
 

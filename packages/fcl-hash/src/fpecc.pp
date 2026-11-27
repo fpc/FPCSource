@@ -1159,6 +1159,53 @@ end;
 type
   TEccPoints4 = array[0..3] of PEccPoint;
 
+// X = x(P1 + P2) for affine points P1, P2, also when they are equal. False when P1 = -P2.
+function EccAffineSumX(out X: TVLI; const P1, P2: TEccPoint): Boolean;
+var
+  Lambda, Num, Den, T: TVLI;
+begin
+  Result := False;
+  vli_clear(X);
+  if vli_cmp(P1.x, P2.x) <> 0 then
+  begin
+    vli_modSub(Num, P2.y, P1.y, Curve_P_32);
+    vli_modSub(Den, P2.x, P1.x, Curve_P_32);
+  end else if vli_cmp(P1.y, P2.y) = 0 then
+  begin
+    // Doubling: (3x^2 - 3) / 2y
+    vli_clear(T);
+    T[0] := 1;
+    vli_modSquare_fast(Num, P1.x);
+    vli_modSub(Num, Num, T, Curve_P_32);
+    vli_modAdd(T, Num, Num, Curve_P_32);
+    vli_modAdd(Num, T, Num, Curve_P_32);
+    vli_modAdd(Den, P1.y, P1.y, Curve_P_32);
+  end else
+    Exit;
+  vli_modInv(Den, Den, Curve_P_32);
+  vli_modMult_fast(Lambda, Num, Den);
+  vli_modSquare_fast(X, Lambda);
+  vli_modSub(X, X, P1.x, Curve_P_32);
+  vli_modSub(X, X, P2.x, Curve_P_32);
+  Result := True;
+end;
+
+
+// X = x(U1*G + U2*Q) with separate multiplications; U2 is not 0. False when the sum is the point at infinity.
+function EccSumOfProductsX(out X: TVLI; const U1, U2: TVLI; const Q: TEccPoint): Boolean;
+var
+  P1, P2: TEccPoint;
+begin
+  EccPointMult(P2, Q, U2, nil);
+  if vli_isZero(U1) then
+  begin
+    vli_set(X, P2.x);
+    Exit(True);
+  end;
+  EccPointMult(P1, Curve_G_32, U1, nil);
+  Result := EccAffineSumX(X, P1, P2);
+end;
+
 function EcdsaVerify(const PublicKey: TEccPublicKey; const Hash: TEccHash; const Signature: TSignature): Boolean;
 
 var
@@ -1167,6 +1214,7 @@ var
   Point: PEccPoint;
   Points: TEccPoints4;
   rx, ry, tx, ty, tz, l_r, l_s, u1, u2, z: TVLI;
+  Degenerate: Boolean;
 
 begin
   Result := False;
@@ -1189,6 +1237,8 @@ begin
   vli_set(tx, Curve_G_32.x);
   vli_set(ty, Curve_G_32.y);
   vli_modSub(z, SumPoint.x, tx, Curve_P_32); // Z = x2 - x1
+  // Q = G or Q = -G
+  Degenerate := vli_isZero(z);
   XYcZ_add(tx, ty, SumPoint.x, SumPoint.y);
   vli_modInv(z, z, Curve_P_32); // Z = 1/Z
   apply_z(SumPoint.x, SumPoint.y, z);
@@ -1225,12 +1275,22 @@ begin
       vli_set(ty, Point^.y);
       apply_z(tx, ty, z);
       vli_modSub(tz, rx, tx, Curve_P_32); // Z = x2 - x1
+      // Adding a point to itself or to its negation
+      if vli_isZero(tz) then
+        Degenerate := True;
       XYcZ_add(tx, ty, rx, ry);
       vli_modMult_fast(z, z, tz);
     end;
   end;
-  vli_modInv(z, z, Curve_P_32); // Z = 1/Z
-  apply_z(rx, ry, z);
+  if Degenerate then
+  begin
+    if not EccSumOfProductsX(rx, u1, u2, PublicPoint) then
+      Exit;
+  end else
+  begin
+    vli_modInv(z, z, Curve_P_32); // Z = 1/Z
+    apply_z(rx, ry, z);
+  end;
   // v = x1 (mod n)
   if vli_cmp(Curve_N_32, rx) <> 1 then
     vli_sub(rx, rx, Curve_N_32);
