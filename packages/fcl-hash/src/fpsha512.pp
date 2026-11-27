@@ -73,6 +73,7 @@ Type
     class procedure DigestHexa(const Value: TBytes; out Result: AnsiString); static;
     // HMAC using SHA512 as hash
     Class function HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; var aDigest: TSHA512Digest): Boolean; overload; static;
+    // HMAC of Data, Data2 and Data3 in that order. False with a zero aDigest when a pointer is nil with a non-zero size
     class function HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; Data2: PByte; DataSize2: SizeUInt; Data3: PByte; DataSize3: SizeUInt; var aDigest: TSHA512Digest): Boolean; overload; static;
     // Calculate HMacSHA512, return digest as hex string.
     class function HMACHexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload; static;
@@ -112,6 +113,7 @@ Type
     class procedure DigestHexa(const Value: TBytes; out Result: AnsiString); static;
     // HMAC using SHA384 as hash
     Class function HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; var aDigest: TSHA384Digest): Boolean; overload; static;
+    // HMAC of Data, Data2 and Data3 in that order. False with a zero aDigest when a pointer is nil with a non-zero size
     class function HMAC(Key: PByte; KeySize: SizeUInt; Data: PByte; DataSize: SizeUInt; Data2: PByte; DataSize2: SizeUInt; Data3: PByte; DataSize3: SizeUInt; var aDigest: TSHA384Digest): Boolean; overload; static;
     // Calculate HMacSHA384, return digest as hex string.
     class function HMACHexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload; static;
@@ -501,6 +503,12 @@ var
   SHA512, SHA512_: TSHA512;
 begin
   Result:=False;
+  if ((Key = nil) and (KeySize > 0)) or ((Data = nil) and (DataSize > 0))
+     or ((Data2 = nil) and (DataSize2 > 0)) or ((Data3 = nil) and (DataSize3 > 0)) then
+  begin
+    FillChar(aDigest, SizeOf(aDigest), 0);
+    Exit;
+  end;
   KeyBuffer:=Default(TBuf128);
   SHA512.Init;
   if KeySize > 128 then
@@ -760,6 +768,12 @@ var
   SHA384, SHA384_: TSHA384;
 begin
   Result:=False;
+  if ((Key = nil) and (KeySize > 0)) or ((Data = nil) and (DataSize > 0))
+     or ((Data2 = nil) and (DataSize2 > 0)) or ((Data3 = nil) and (DataSize3 > 0)) then
+  begin
+    FillChar(aDigest, SizeOf(aDigest), 0);
+    Exit;
+  end;
   KeyBuffer:=Default(TBuf128);
   SHA384.Init;
   if KeySize > 128 then

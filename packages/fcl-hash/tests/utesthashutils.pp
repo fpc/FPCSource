@@ -26,6 +26,7 @@ type
     procedure TestBigIntImportEmpty;
     procedure TestBigIntExportSize;
     procedure TestFinalClearsState;
+    procedure TestHMACNilData;
   end;
 
 implementation
@@ -348,6 +349,35 @@ begin
   lSHA384.Update(TBytes([1,2,3]));
   lSHA384.Final;
   AssertTrue('SHA-384 state cleared',AllZero(@lSHA384.Base,SizeOf(lSHA384.Base)));
+end;
+
+
+procedure TTestHashUtils.TestHMACNilData;
+var
+  lKey, lData: TBytes;
+  l256, lRef256: TSHA256Digest;
+  l224: TSHA224Digest;
+  l512, lRef512: TSHA512Digest;
+  l384: TSHA384Digest;
+begin
+  lKey:=TBytes([1,2,3]);
+  lData:=TBytes([4,5,6]);
+  AssertTrue('SHA-256 HMAC with nil and size 0',TSHA256.HMAC(@lKey[0],3,@lData[0],3,nil,0,nil,0,l256));
+  AssertTrue('SHA-256 HMAC with two parts',TSHA256.HMAC(@lKey[0],3,@lData[0],3,lRef256));
+  AssertTrue('nil with size 0 is ignored',CompareMem(@l256,@lRef256,SizeOf(l256)));
+  FillChar(l256,SizeOf(l256),$EE);
+  AssertFalse('SHA-256 HMAC with nil Data2 and size 3',TSHA256.HMAC(@lKey[0],3,@lData[0],3,nil,3,nil,0,l256));
+  AssertEquals('SHA-256 digest cleared',0,l256[0] or l256[31]);
+  AssertFalse('SHA-256 HMAC with nil Data3 and size 3',TSHA256.HMAC(@lKey[0],3,@lData[0],3,nil,0,nil,3,l256));
+  AssertFalse('SHA-256 HMAC with nil Data and size 3',TSHA256.HMAC(@lKey[0],3,nil,3,l256));
+  AssertFalse('SHA-256 HMAC with nil Key and size 3',TSHA256.HMAC(nil,3,@lData[0],3,l256));
+  AssertTrue('SHA-256 HMAC with empty key and data',TSHA256.HMAC(nil,0,nil,0,l256));
+  AssertFalse('SHA-224 HMAC with nil Data2 and size 3',TSHA224.HMAC(@lKey[0],3,@lData[0],3,nil,3,nil,0,l224));
+  AssertTrue('SHA-512 HMAC with nil and size 0',TSHA512.HMAC(@lKey[0],3,@lData[0],3,nil,0,nil,0,l512));
+  AssertTrue('SHA-512 HMAC with two parts',TSHA512.HMAC(@lKey[0],3,@lData[0],3,lRef512));
+  AssertTrue('SHA-512 nil with size 0 is ignored',CompareMem(@l512,@lRef512,SizeOf(l512)));
+  AssertFalse('SHA-512 HMAC with nil Data2 and size 3',TSHA512.HMAC(@lKey[0],3,@lData[0],3,nil,3,nil,0,l512));
+  AssertFalse('SHA-384 HMAC with nil Data3 and size 3',TSHA384.HMAC(@lKey[0],3,@lData[0],3,nil,0,nil,3,l384));
 end;
 
 
