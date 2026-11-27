@@ -240,7 +240,7 @@ begin
   for I := 0 to 15 do
   begin
     t1 := H+(((E shr 6) or (E shl 26)) xor ((E shr 11) or (E shl 21)) xor ((E shr 25) or (E shl 7)))+((E and F) xor (not E and G))+K[I]+W[I];
-    t2 := (((A shr 2) or (A shl 30)) xor ((A shr 13) or (A shl 19)) xor ((A shr 22) xor (A shl 10)))+((A and B) xor (A and C) xor (B and C));
+    t2 := (((A shr 2) or (A shl 30)) xor ((A shr 13) or (A shl 19)) xor ((A shr 22) or (A shl 10)))+((A and B) xor (A and C) xor (B and C));
     H := G; G := F; F := E; E := D+t1;
     D := C; C := B; B := A; A := t1+t2;
   end;
@@ -252,7 +252,7 @@ begin
       xor ((W[I-15] shr 18) or (W[I-15] shl 14)) xor (W[I-15] shr 3))+W[I-16];
 
     t1 := H+(((E shr 6) or (E shl 26)) xor ((E shr 11) or (E shl 21)) xor ((E shr 25) or (E shl 7)))+((E and F) xor (not E and G))+K[I]+W[I];
-    t2 := (((A shr 2) or (A shl 30)) xor ((A shr 13) or (A shl 19)) xor ((A shr 22) xor (A shl 10)))+((A and B) xor (A and C) xor (B and C));
+    t2 := (((A shr 2) or (A shl 30)) xor ((A shr 13) or (A shl 19)) xor ((A shr 22) or (A shl 10)))+((A and B) xor (A and C) xor (B and C));
     H := G; G := F; F := E; E := D+t1;
     D := C; C := B; B := A; A := t1+t2;
   end;
