@@ -391,15 +391,14 @@ unit rgobj;
 
 
     function tinterferencebitmap.getbitmap(x,y:tsuperregister):boolean;
-      var
-        page : TInterferencebitmap2;
       begin
         result:=false;
         if (x shr 8>maxx1) then
           exit;
-        page:=fbitmap[x shr 8,y shr 8];
-        result:=assigned(page) and
-          ((x and $ff) in page[y and $ff]);
+        { no local copy of the page: a dynamic array variable is reference counted,
+          which costs more than the test itself in this hot function }
+        result:=assigned(fbitmap[x shr 8,y shr 8]) and
+          ((x and $ff) in fbitmap[x shr 8,y shr 8][y and $ff]);
       end;
 
 
