@@ -95,7 +95,8 @@ procedure ASNWriteBitStrEnd(BitStrBegin: int64; s: TMemoryStream);
 
 // Encodes ASN.1 object to binary form
 procedure ASNObject(const Data: AnsiString; const ASNType: Integer; var Buffer: TBytes);
-// Encodes an MIB OID String to binary form
+// Appends the binary form of the dotted OID Mib to Result. EHashUtil for an invalid OID:
+// an empty or non-numeric arc, fewer than two arcs, a first arc above 2, or a second arc above 39 under first arc 0 or 1.
 procedure MibToId(Mib: AnsiString; var Result: AnsiString);
 // Decodes MIB OID from binary form to String form.
 procedure IdToMib(const Id: AnsiString; var Result: AnsiString); overload;
@@ -482,28 +483,54 @@ end;
 
 procedure MibToId(Mib: AnsiString; var Result: AnsiString);
 
-  function WalkInt(var S: AnsiString): Integer;
-  var
-    P : Integer;
+var
+  P: Integer;
+
+  // Raise EHashUtil for the OID being converted
+  procedure Invalid;
   begin
-    P:=Pos('.',S);
-    If P=0 then
-      P:=Length(S)+1;
-    Result:=StrToIntDef(Copy(S,1,P-1),0);
-    S:=Copy(S,P+1,Length(S));
+    raise EHashUtil.CreateFmt('Invalid object identifier "%s"', [Mib]);
+  end;
+
+  // Arc at position P, which then points after the arc and its '.'
+  function NextArc: Int64;
+  var
+    Start: Integer;
+  begin
+    Start := P;
+    Result := 0;
+    while (P <= Length(Mib)) and (Mib[P] in ['0'..'9']) do
+    begin
+      Result := Result*10 + Ord(Mib[P]) - Ord('0');
+      if Result > High(Integer) then
+        Invalid;
+      Inc(P);
+    end;
+    if P = Start then
+      Invalid;
+    if P <= Length(Mib) then
+    begin
+      if Mib[P] <> '.' then
+        Invalid;
+      Inc(P);
+      if P > Length(Mib) then
+        Invalid;
+    end;
   end;
 
 var
-  x: Integer;
+  First, Second: Int64;
 begin
-  x := WalkInt(Mib);
-  x := x*40 + WalkInt(Mib);
-  ASNEncodeOID(x, Result);
-  while (Mib<>'') do
-  begin
-    x := WalkInt(Mib);
-    ASNEncodeOID(x, Result);
-  end;
+  P := 1;
+  First := NextArc;
+  if P > Length(Mib) then
+    Invalid;
+  Second := NextArc;
+  if (First > 2) or ((First < 2) and (Second > 39)) then
+    Invalid;
+  ASNEncodeOID(First*40 + Second, Result);
+  while P <= Length(Mib) do
+    ASNEncodeOID(NextArc, Result);
 end;
 
 // First two arcs of an OID from its first encoded number: 40*first+second, where only first arc 2 has a second arc above 39.

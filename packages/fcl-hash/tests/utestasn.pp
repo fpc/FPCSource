@@ -36,6 +36,7 @@ type
     procedure TestDebugBitStringWithoutContent;
     procedure TestEncodeUInt;
     procedure TestOIDRoundTrip;
+    procedure TestOIDInvalid;
   end;
 
 implementation
@@ -288,6 +289,36 @@ begin
   Encoded:='';
   MibToId('2.999.3',Encoded);
   AssertEquals('Encoding of 2.999.3','883703',UpperCase(BytesToHexStr(Encoded)));
+end;
+
+
+procedure TTestASN.TestOIDInvalid;
+
+  // True when MibToId raises EHashUtil for aMib
+  function Raises(const aMib: AnsiString): Boolean;
+  var
+    lEncoded: AnsiString;
+  begin
+    Result:=False;
+    lEncoded:='';
+    try
+      MibToId(aMib,lEncoded);
+    except
+      on EHashUtil do
+        Result:=True;
+    end;
+  end;
+
+const
+  Invalid: array[0..9] of AnsiString = ('', '1', '1.2.abc.4', '1..2', '1.2.', '.1.2', '3.1', '1.40', '1.-2', '1.2.99999999999');
+var
+  I: Integer;
+begin
+  for I:=Low(Invalid) to High(Invalid) do
+    AssertTrue('Invalid OID "'+Invalid[I]+'" raises EHashUtil',Raises(Invalid[I]));
+  AssertFalse('1.39 is valid',Raises('1.39'));
+  AssertFalse('2.40 is valid',Raises('2.40'));
+  AssertFalse('1.2.840.113549 is valid',Raises('1.2.840.113549'));
 end;
 
 
