@@ -323,6 +323,8 @@
             oldsize := FindSize(p);
             OldAllocSize := align(oldsize+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
             NewAllocSize := align(size+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
+            { the block is resized in place unless it is moved below }
+            result := p;
             if OldAllocSize = NewAllocSize then
               begin
                 { old and new size are the same after alignment, so the memory block is already allocated }
@@ -437,7 +439,6 @@
                               FreeList := new_after_block;
                           end;
                         FillChar((TTinyHeapPointerArithmeticType(Result)+oldsize)^, size-oldsize, 0);
-                        p := Result;
                       end
                     else
                       begin
@@ -449,8 +450,8 @@
                             move(pbyte(p)^, pbyte(result)^, oldsize);
                           end;
                         SysFreeMem(p);
-                        p := result;
                       end;
+                    p := result;
                   end;
               end;
           end;
