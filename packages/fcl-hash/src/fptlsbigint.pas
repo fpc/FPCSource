@@ -953,47 +953,56 @@ begin
     J := J div 5;
   end;
   BIPrecomputeSlideWindow(Context, WindowSize, BI); // Work out the sliding window constants
-  repeat // If sliding-window is off, then only one bit will be done at a time and will reduce to standard left-to-right exponentiation
-    if BIExpBitIsOne(BIExp,I) then
-    begin
-      L := I-WindowSize+1;
-      PartExp := 0;
-      if L < 0 then // LSB of exponent will always be 1
-      begin
-        L := 0;
-      end else
-      begin
-        while not BIExpBitIsOne(BIExp,L) do
-          Inc(L); // Go back up
-      end;
-      // Build up the section of the exponent
-      J := I;
-      while J >= L do
-      begin
-        BIR := BIResidue(Context, BISquare(Context,BIR));
-        if BIExpBitIsOne(BIExp, J) then
-          Inc(PartExp);
-        if J <> L then
-          PartExp := PartExp shl 1;
-        Dec(J);
-      end;
-      PartExp := (PartExp-1) div 2; // Adjust for array
-      BIR := BIResidue(Context, BIMultiply(Context, BIR, Context.G[PartExp]));
-      I := L-1;
-    end else
-    begin // Square it
-      BIR := BIResidue(Context, BISquare(Context, BIR));
-      Dec(I);
+  try
+    try
+      repeat // If sliding-window is off, then only one bit will be done at a time and will reduce to standard left-to-right exponentiation
+        if BIExpBitIsOne(BIExp,I) then
+        begin
+          L := I-WindowSize+1;
+          PartExp := 0;
+          if L < 0 then // LSB of exponent will always be 1
+          begin
+            L := 0;
+          end else
+          begin
+            while not BIExpBitIsOne(BIExp,L) do
+              Inc(L); // Go back up
+          end;
+          // Build up the section of the exponent
+          J := I;
+          while J >= L do
+          begin
+            BIR := BIResidue(Context, BISquare(Context,BIR));
+            if BIExpBitIsOne(BIExp, J) then
+              Inc(PartExp);
+            if J <> L then
+              PartExp := PartExp shl 1;
+            Dec(J);
+          end;
+          PartExp := (PartExp-1) div 2; // Adjust for array
+          BIR := BIResidue(Context, BIMultiply(Context, BIR, Context.G[PartExp]));
+          I := L-1;
+        end else
+        begin // Square it
+          BIR := BIResidue(Context, BISquare(Context, BIR));
+          Dec(I);
+        end;
+      until I < 0;
+    except
+      BIRelease(Context, BIR);
+      raise;
     end;
-  until I < 0;
-  for I := 0 to Context.Window-1 do
-  begin // Cleanup
-    BIDepermanent(Context.G[I]);
-    BIRelease(Context, Context.G[I]);
+  finally
+    for I := 0 to Context.Window-1 do
+    begin // Cleanup
+      BIDepermanent(Context.G[I]);
+      BIRelease(Context, Context.G[I]);
+    end;
+    FreeMem(Context.G);
+    Context.G := nil;
+    BIRelease(Context, BI);
+    BIRelease(Context, BIExp);
   end;
-  FreeMem(Context.G);
-  BIRelease(Context, BI);
-  BIRelease(Context, BIExp);
   Result := BIR;
 end;
 
