@@ -31,7 +31,9 @@ Type
   { TECDSA }
 
   TECDSA = record
+    // Sign the SHA-256 hash of the UTF-8 encoded aPayLoad; see the TBytes overload
     Class Function SignSHA256(aPayLoad : String; aPrivateKey : TECCPrivateKey; out aSignature : TEccSignature) : Boolean; static; overload;
+    // Sign the SHA-256 hash of aPayLoad and verify the signature. False with an all-zero aSignature when signing or verifying fails
     Class Function SignSHA256(aPayLoad : TBytes; aPrivateKey : TECCPrivateKey; out aSignature : TEccSignature) : Boolean; static; overload;
     Class Function VerifySHA256(aPayLoad : String; aPrivateKey : TECCPrivateKey; const aSignature : TEccSignature) : Boolean; static; overload;
     Class Function VerifySHA256(aPayLoad : TBytes; aPrivateKey : TECCPrivateKey; const aSignature : TEccSignature) : Boolean; static; overload;
@@ -69,6 +71,8 @@ begin
     EccPublicKeyFromPrivateKey(PubKey,aPrivateKey);
     Result:=EcdsaVerify(Pubkey,eccHash,aSignature);
     end;
+  if not Result then
+    aSignature:=Default(TEccSignature);
 end;
 
 Class Function TECDSA.VerifySHA256(aPayLoad : String; aPrivateKey : TECCPrivateKey; const aSignature : TEccSignature) : Boolean; static;

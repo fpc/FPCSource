@@ -49,6 +49,7 @@ type
      Procedure TestSignVerify;
      Procedure TestVerify;
      Procedure TestVerifyFromKey;
+     Procedure TestSignInvalidKey;
    end;
 
 implementation
@@ -293,6 +294,22 @@ begin
   AssertTrue('255 blocks',TSHA224.HKDF(Salt,IKM,Info,Output,255*28));
   AssertFalse('More than 255 blocks',TSHA224.HKDF(Salt,IKM,Info,Output,255*28+1));
 end;
+
+procedure TTestECDSASHA256.TestSignInvalidKey;
+var
+  lPrivateKey: TEccPrivateKey;
+  lSignature: TEccSignature;
+  I: Integer;
+  lZero: Boolean;
+begin
+  lPrivateKey:=Default(TEccPrivateKey);
+  AssertFalse('Signing with private key 0 fails',TECDSA.SignSHA256(aInput,lPrivateKey,lSignature));
+  lZero:=True;
+  for I:=Low(lSignature) to High(lSignature) do
+    lZero:=lZero and (lSignature[I]=0);
+  AssertTrue('Signature cleared after a failed self-check',lZero);
+end;
+
 
 initialization
   RegisterTests([TTestSHA256,TTestECDSASHA256]);
