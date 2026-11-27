@@ -116,7 +116,8 @@ procedure X509RsaPrivateKeyInitFromDER(out RSA: TX509RSAPrivateKey; const Privat
        make the padding at least 8 bytes as recommended by RFC2313)
   Output: The buffer for the encrypted result (Must always be Modulus length)
   Sign: If true then sign instead of encrypting
-  Result: The number of bytes encrypted or on error -1 or exception }
+  Result: The number of bytes encrypted or on error -1 or exception
+  Moduli of any size are supported; above 4096 bits the work buffer is on the heap. }
 function RSAEncryptSign(var RSA: TRSA; const Input: PByte; Len: Integer; Output: PByte; Sign: Boolean): Integer;
 
 { Perform PKCS1.5 Decryption or Verification
@@ -125,7 +126,8 @@ function RSAEncryptSign(var RSA: TRSA; const Input: PByte; Len: Integer; Output:
   Output: The buffer for the decrypted result
   Len: The size of the output buffer in bytes
   Verify: If true then verify instead of decrypting
-  Result: The number of bytes decrypted or on error -1 or exception }
+  Result: The number of bytes decrypted or on error -1 or exception
+  Moduli of any size are supported; above 4096 bits the work buffer is on the heap. }
 function RSADecryptVerify(var RSA: TRSA; const Input: PByte; Output: PByte; Len: Integer; Verify: Boolean): Integer;
 
 function RS256VerifyFromPublicKeyHexa(const PublicKeyHexa, SignatureBaseHash, Signature: String): Boolean;
@@ -206,7 +208,8 @@ function MGF1SHA256(const InputStr: string; Len: integer): string;
 implementation
 
 const
-  RSA_MODULUS_BYTES_MAX = 512; // 4096 bit maximum
+  // Moduli up to this size (4096 bits) use a stack buffer, larger ones a heap buffer
+  RSA_MODULUS_BYTES_MAX = 512;
 
 procedure RSACreate(out RSA: TRSA);
 begin
