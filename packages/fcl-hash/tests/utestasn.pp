@@ -35,6 +35,7 @@ type
     procedure TestBitStringNestingLimit;
     procedure TestDebugBitStringWithoutContent;
     procedure TestEncodeUInt;
+    procedure TestOIDRoundTrip;
   end;
 
 implementation
@@ -263,6 +264,30 @@ begin
   AssertEquals('65536','010000',Encode(65536));
   AssertEquals('$12345678','12345678',Encode($12345678));
   AssertEquals('-1 as unsigned 32 bit','FFFFFFFF',Encode(-1));
+end;
+
+
+procedure TTestASN.TestOIDRoundTrip;
+const
+  OIDs: array[0..6] of AnsiString = ('0.9.2342.19200300.100.1.1', '1.2.840.113549.1.1.1', '2.5.4.3',
+                                     '2.39.1', '2.40.1', '2.100.3', '2.999.3');
+var
+  I: Integer;
+  Encoded, Decoded: AnsiString;
+begin
+  for I:=Low(OIDs) to High(OIDs) do
+    begin
+    Encoded:='';
+    MibToId(OIDs[I],Encoded);
+    Decoded:='stale';
+    IdToMib(Encoded,Decoded);
+    AssertEquals('String decoding of '+OIDs[I],OIDs[I],Decoded);
+    AssertEquals('Buffer decoding of '+OIDs[I],OIDs[I],
+                 IdToMib(PByte(Encoded),PByte(Encoded)+Length(Encoded)));
+    end;
+  Encoded:='';
+  MibToId('2.999.3',Encoded);
+  AssertEquals('Encoding of 2.999.3','883703',UpperCase(BytesToHexStr(Encoded)));
 end;
 
 

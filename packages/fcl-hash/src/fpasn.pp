@@ -506,22 +506,28 @@ begin
   end;
 end;
 
+// First two arcs of an OID from its first encoded number: 40*first+second, where only first arc 2 has a second arc above 39.
+function FirstArcsToMib(aValue: Int64): AnsiString;
+begin
+  if aValue < 80 then
+    Result:=IntToStr(aValue div 40)+'.'+IntToStr(aValue mod 40)
+  else
+    Result:='2.'+IntToStr(aValue-80);
+end;
+
 procedure IdToMib(const Id: AnsiString; var Result: AnsiString);
 var
-  x, y, Index: Integer;
+  x, Index: Integer;
 begin
+  Result:='';
   Index := 1;
   while Index <= Length(ID) do
   begin
     x := ASNDecodeOID(Index, ID);
-    if Index = 2 then
-    begin
-      y := x div 40;
-      x := x mod 40;
-      Result:=IntToStr(y);
-    end;
-    Result:=Result+'.';
-    Result:=Result+IntToStr(x);
+    if Result = '' then
+      Result:=FirstArcsToMib(x)
+    else
+      Result:=Result+'.'+IntToStr(x);
   end;
 end;
 
@@ -749,11 +755,9 @@ begin
     if x<0 then
       raise EHashUtil.Create('20220427114808');
     if Result='' then
-    begin
-      Result:=IntToStr(x div 40);
-      x := x mod 40;
-    end;
-    Result:=Result+'.'+IntToStr(x);
+      Result:=FirstArcsToMib(x)
+    else
+      Result:=Result+'.'+IntToStr(x);
   end;
 end;
 
