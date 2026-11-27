@@ -2834,7 +2834,8 @@ implementation
         unaligned(PUint16(@HeaderBytes[$18{..$19}])^):=NtoLE(uint16(RelocTableOffset));
         unaligned(PUint16(@HeaderBytes[$1A{..$1B}])^):=NtoLE(uint16(OverlayNumber));
         aWriter.write(HeaderBytes[0],$1C);
-        aWriter.write(ExtraHeaderData[0],Length(ExtraHeaderData));
+        if Length(ExtraHeaderData)>0 then
+          aWriter.write(ExtraHeaderData[0],Length(ExtraHeaderData));
         for i:=0 to NumRelocs-1 do
           with Relocations[i] do
             begin
@@ -3548,7 +3549,8 @@ cleanup:
             omfsec.Data.seek(objreloc.DataOffset);
             omfsec.Data.read(w,2);
             w:=LEtoN(w);
-            Inc(w,fixupamount);
+            { fixupamount can be negative, the offset wraps around }
+            w:=Word(w+fixupamount);
             w:=NtoLE(w);
             omfsec.Data.seek(objreloc.DataOffset);
             omfsec.Data.write(w,2);
@@ -3561,7 +3563,7 @@ cleanup:
             omfsec.Data.seek(objreloc.DataOffset);
             omfsec.Data.read(lw,4);
             lw:=LEtoN(lw);
-            Inc(lw,fixupamount);
+            lw:=LongWord(lw+fixupamount);
             lw:=NtoLE(lw);
             omfsec.Data.seek(objreloc.DataOffset);
             omfsec.Data.write(lw,4);
@@ -3603,11 +3605,11 @@ cleanup:
                     end;
                 case objreloc.typ of
                   RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG,RELOC_FARPTR,RELOC_FARPTR48:
-                    fixupamount:=target-framebase;
+                    fixupamount:=int64(target)-int64(framebase);
                   RELOC_RELATIVE16,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
+                    fixupamount:=int64(target)-int64(omfsec.MemPos+objreloc.DataOffset)-2;
                   RELOC_RELATIVE32,RELOC_FARPTR48_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-4;
+                    fixupamount:=int64(target)-int64(omfsec.MemPos+objreloc.DataOffset)-4;
                   else
                     internalerror(2015082402);
                 end;
@@ -3654,11 +3656,11 @@ cleanup:
                   end;
                 case objreloc.typ of
                   RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG,RELOC_FARPTR,RELOC_FARPTR48:
-                    fixupamount:=target-framebase;
+                    fixupamount:=int64(target)-int64(framebase);
                   RELOC_RELATIVE16,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
+                    fixupamount:=int64(target)-int64(omfsec.MemPos+objreloc.DataOffset)-2;
                   RELOC_RELATIVE32,RELOC_FARPTR48_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-4;
+                    fixupamount:=int64(target)-int64(omfsec.MemPos+objreloc.DataOffset)-4;
                   else
                     internalerror(2015082405);
                 end;
@@ -3698,11 +3700,11 @@ cleanup:
                   framebase:=target_group.MemPos;
                 case objreloc.typ of
                   RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG,RELOC_FARPTR,RELOC_FARPTR48:
-                    fixupamount:=target-framebase;
+                    fixupamount:=int64(target)-int64(framebase);
                   RELOC_RELATIVE16,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
+                    fixupamount:=int64(target)-int64(omfsec.MemPos+objreloc.DataOffset)-2;
                   RELOC_RELATIVE32,RELOC_FARPTR48_RELATIVEOFFSET:
-                    fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-4;
+                    fixupamount:=int64(target)-int64(omfsec.MemPos+objreloc.DataOffset)-4;
                   else
                     internalerror(2015111202);
                 end;
@@ -4038,7 +4040,8 @@ cleanup:
               internalerror(2019080903);
             unaligned(PUint16(@buf[2*i{..2*i+1}])^):=NtoLE(uint16(ImpTblEntry.TableOffset));
           end;
-        aWriter.write(buf[0],Length(buf));
+        if Length(buf)>0 then
+          aWriter.write(buf[0],Length(buf));
       end;
 
 {****************************************************************************

@@ -1583,7 +1583,8 @@ implementation
       CommentClass:=RawRecord.RawData[1];
       SetLength(FCommentString,RawRecord.RecordLength-3);
       UniqueString(FCommentString);
-      Move(RawRecord.RawData[2],FCommentString[1],Length(FCommentString));
+      if Length(FCommentString)>0 then
+        Move(RawRecord.RawData[2],FCommentString[1],Length(FCommentString));
     end;
 
   procedure TOmfRecord_COMENT.EncodeTo(RawRecord: TOmfRawRecord);
