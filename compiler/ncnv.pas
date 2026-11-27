@@ -313,8 +313,11 @@ interface
     procedure inserttypeconv(var p:tnode;def:tdef);
     procedure inserttypeconv_explicit(var p:tnode;def:tdef);
     procedure inserttypeconv_internal(var p:tnode;def:tdef);
-    procedure arrayconstructor_to_set(var p : tnode);inline;
-    function arrayconstructor_to_set(p:tnode;freep:boolean):tnode;
+    { contextdef is the set or ordinal type which determines the range of
+      variable set elements (e.g. the destination set type of an assignment),
+      nil if there is none }
+    procedure arrayconstructor_to_set(var p : tnode;contextdef : tdef = nil);inline;
+    function arrayconstructor_to_set(p:tnode;freep:boolean;contextdef : tdef = nil):tnode;
     function arrayconstructor_can_be_set(p:tnode):boolean;
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
 
@@ -417,18 +420,89 @@ implementation
                     Array constructor to Set Conversion
 *****************************************************************************}
 
-    procedure arrayconstructor_to_set(var p : tnode);
+    procedure arrayconstructor_to_set(var p : tnode;contextdef : tdef);
       begin
-        p:=arrayconstructor_to_set(p,true);
+        p:=arrayconstructor_to_set(p,true,contextdef);
       end;
 
-    function arrayconstructor_to_set(p:tnode;freep:boolean):tnode;
+    function arrayconstructor_to_set(p:tnode;freep:boolean;contextdef : tdef):tnode;
       var
         constp      : tsetconstnode;
         p2,p3,p4    : tnode;
         hdef        : tdef;
         constsetlo,
         constsethi  : TConstExprInt;
+        { type to which variable integer elements are converted and the
+          highest element they can contribute }
+        varelementdef : tdef;
+        maxelem     : asizeint;
+        hdefwidened : boolean;
+
+        { determines varelementdef and maxelem: variable integer elements are
+          range checked against/truncated to a type whose range the set covers,
+          so they can be added without further checks }
+        procedure init_varelementdef;
+          var
+            ctxelemdef : tdef;
+            l,h : TConstExprInt;
+          begin
+            varelementdef:=u8inttype;
+            maxelem:=high(byte);
+            { TP and Delphi: always a byte }
+            if max_set_element<=high(byte) then
+              exit;
+            ctxelemdef:=nil;
+            if assigned(contextdef) then
+              case contextdef.typ of
+                setdef:
+                  ctxelemdef:=tsetdef(contextdef).elementdef;
+                orddef,
+                enumdef:
+                  ctxelemdef:=contextdef;
+                else
+                  ;
+              end;
+            if assigned(ctxelemdef) then
+              begin
+                getrange(ctxelemdef,l,h);
+                { only elements in the range of the context matter }
+                if h<=high(byte) then
+                  exit;
+                { use the type of the context, so e.g. s:=s+[i] can be done in place }
+                if is_integer(ctxelemdef) and
+                   (l>=0) and
+                   (h<max_set_element) then
+                  begin
+                    varelementdef:=ctxelemdef;
+                    maxelem:=h.svalue;
+                    exit;
+                  end;
+              end;
+            { a set of 0..65535 covers all values of a word }
+            if max_set_element<>high(word) then
+              internalerror(2026103002);
+            varelementdef:=u16inttype;
+            maxelem:=high(word);
+          end;
+
+        { convert the elements added before hdef was widened to the new hdef }
+        procedure convert_set_elements(n : tnode);
+          var
+            elem : tsetelementnode;
+          begin
+            while n.nodetype=addn do
+              begin
+                if taddnode(n).right.nodetype<>setelementn then
+                  internalerror(2026103001);
+                elem:=tsetelementnode(taddnode(n).right);
+                if not equal_defs(elem.left.resultdef,hdef) then
+                  inserttypeconv(elem.left,hdef);
+                if assigned(elem.right) and
+                   not equal_defs(elem.right.resultdef,hdef) then
+                  inserttypeconv(elem.right,hdef);
+                n:=taddnode(n).left;
+              end;
+          end;
 
         procedure update_constsethi(def:tdef; maybetruncenumrange: boolean);
           begin
@@ -449,16 +523,24 @@ implementation
                       constsethi:=torddef(def).high;
                     if (torddef(def).low<=constsetlo) then
                       constsetlo:=torddef(def).low;
+                    if constsethi>maxelem then
+                      constsethi:=maxelem;
                     if hdef=nil then
                       begin
                          if (constsethi>255) or
                             (torddef(def).low<0) then
-                           hdef:=u8inttype
+                           hdef:=varelementdef
                          else
                            hdef:=def;
+                      end
+                    { an integer element type chosen for earlier elements might be too small now }
+                    else if (constsethi>255) and
+                       is_integer(hdef) and
+                       (constsethi>torddef(hdef).high) then
+                      begin
+                        hdef:=varelementdef;
+                        hdefwidened:=true;
                       end;
-                    if constsethi>255 then
-                      constsethi:=255;
                     if constsetlo<0 then
                       constsetlo:=0;
                   end;
@@ -521,6 +603,9 @@ implementation
         if p.nodetype<>arrayconstructorn then
           internalerror(200205105);
         hdef:=nil;
+        hdefwidened:=false;
+        varelementdef:=nil;
+        init_varelementdef;
         { make sure to set constsetlo correctly for empty sets }
         if assigned(tarrayconstructornode(p).left) then
           constsetlo:=high(aint)
@@ -638,7 +723,7 @@ implementation
                               else if first then
                                 hdef:=p3.resultdef
                               else
-                                inserttypeconv(p3,u8inttype);
+                                inserttypeconv(p3,varelementdef);
                               p4:=csetelementnode.create(p2,p3);
                             end;
                          end;
@@ -671,7 +756,7 @@ implementation
                           else if not(is_integer(p2.resultdef)) and first then
                             hdef:=p2.resultdef
                           else
-                            inserttypeconv(p2,u8inttype);
+                            inserttypeconv(p2,varelementdef);
 
                           p4:=csetelementnode.create(p2,nil);
                         end;
@@ -698,7 +783,9 @@ implementation
                 hdef:=constelementdef
               else
                 hdef:=u8inttype;
-            end;
+            end
+          else if hdefwidened then
+            convert_set_elements(result);
          end
         else
          begin
@@ -1802,7 +1889,7 @@ implementation
         hp:=left;
         left:=nil;
         { create a set constructor tree }
-        arrayconstructor_to_set(hp);
+        arrayconstructor_to_set(hp,totypedef);
         if is_emptyset(hp) then
           begin
             { enforce the result type for an empty set }

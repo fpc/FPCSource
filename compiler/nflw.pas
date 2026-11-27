@@ -1033,7 +1033,7 @@ implementation
                         (hloopvar.resultdef.typ in [enumdef,orddef]) and
                         arrayconstructor_can_be_set(expr) then
                       begin
-                        expr:=arrayconstructor_to_set(expr,false);
+                        expr:=arrayconstructor_to_set(expr,false,hloopvar.resultdef);
                         typecheckpass(expr);
                       end;
                     case expr.resultdef.typ of

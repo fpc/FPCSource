@@ -3129,7 +3129,7 @@ implementation
                else if assigned(def_to) and (def_to.typ=setdef) and is_array_constructor(currpt.left.resultdef) then
                  begin
                    n:=currpt.left.getcopy;
-                   arrayconstructor_to_set(n);
+                   arrayconstructor_to_set(n,def_to);
                    eq:=compare_defs_ext(n.resultdef,def_to,n.nodetype,convtype,pdoper,cdoptions);
                    check_valid_var:=false;
                    n.free;

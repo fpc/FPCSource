@@ -250,23 +250,26 @@ implementation
          result:=nil;
 
          resultdef:=pasbool1type;
+         typecheckpass(left);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
+         if codegenerror then
+           exit;
+
          typecheckpass(right);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
-         { Convert array constructor first to set }
+         { Convert array constructor to set, only elements in the range of left matter }
          if is_array_constructor(right.resultdef) then
           begin
-            arrayconstructor_to_set(right);
+            if is_ordinal(left.resultdef) then
+              arrayconstructor_to_set(right,left.resultdef)
+            else
+              arrayconstructor_to_set(right);
             if codegenerror then
              exit;
           end;
-
-         typecheckpass(left);
-         set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if codegenerror then
-           exit;
 
          if not assigned(left.resultdef) then
            internalerror(20021126);

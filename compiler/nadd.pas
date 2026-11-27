@@ -2269,6 +2269,7 @@ const
       var
         hp          : tnode;
         rd,ld,nd    : tdef;
+        lctx,rctx   : tdef;
         hsym        : tfieldvarsym;
         llow,lhigh,
         rlow,rhigh  : tconstexprint;
@@ -2281,6 +2282,18 @@ const
         factval     : Tnode;
         change      : boolean;
 {$endif}
+
+        { returns the set type limiting the range of the variable elements of an
+          array constructor whose other operand is other, nil if there is none }
+        function set_operand_context(other: tnode): tdef;
+          begin
+            result:=nil;
+            { the result of +, - and * has the type of the set operand, while for
+              comparisons elements outside the other operand's range matter }
+            if (nodetype in [addn,subn,muln]) and
+               (other.resultdef.typ=setdef) then
+              result:=other.resultdef;
+          end;
 
         function maybe_cast_ordconst(var n: tnode; adef: tdef): boolean;
           begin
@@ -2401,14 +2414,17 @@ const
                  ) and
                  not isbinaryoverloaded(hp,[ocf_check_only]) then
                begin
+                 { determine the contexts before any operand is converted }
+                 lctx:=set_operand_context(right);
+                 rctx:=set_operand_context(left);
                  if is_array_constructor(left.resultdef) then
                    begin
-                     arrayconstructor_to_set(left);
+                     arrayconstructor_to_set(left,lctx);
                      typecheckpass(left);
                    end;
                  if is_array_constructor(right.resultdef) then
                    begin
-                     arrayconstructor_to_set(right);
+                     arrayconstructor_to_set(right,rctx);
                      typecheckpass(right);
                    end;
                end;

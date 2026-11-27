@@ -721,7 +721,7 @@ implementation
                   if (p.propdef.typ=setdef) and
                      (pt.nodetype=arrayconstructorn) then
                     begin
-                      arrayconstructor_to_set(pt);
+                      arrayconstructor_to_set(pt,p.propdef);
                       do_typecheckpass(pt);
                     end;
                   inserttypeconv(pt,p.propdef);
