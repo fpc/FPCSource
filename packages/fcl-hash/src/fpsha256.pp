@@ -628,15 +628,15 @@ begin
   Base.Update(Value);
 end;
 
-// @Result[64]
-// 'abc' -> 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
+// @Result[56]
+// 'abc' -> '23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7'
 procedure TSHA224.OutputHexa(out Result: AnsiString);
 
 begin
   BytesToHexStr(Result,PByte(@Self.Digest),SizeOf(Self.Digest));
 end;
 
-// @Result[32]
+// @Result[28]
 class procedure TSHA224.DigestBytes(const Value: TBytes; out Result: TBytes);
 var
   lSHA224: TSHA224;
@@ -659,7 +659,7 @@ begin
   BytesEncodeBase64(S, Result, IsURL, False, False);
 end;
 
-// @Result[64]
+// @Result[56]
 Class procedure TSHA224.DigestHexa(const Value: TBytes; out Result: AnsiString);
 var
   SHA224: TSHA224;
@@ -730,7 +730,7 @@ begin
   Result:=True;
 end;
 
-// @Result[64]
+// @Result[56]
 class function TSHA224.HMACHexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload;
 
 var

@@ -535,7 +535,7 @@ begin
   Result:=True;
 end;
 
-// @Result[64]
+// @Result[128]
 class function TSHA512.HMACHexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload;
 var
   aDigest: TSHA512Digest;
@@ -791,7 +791,7 @@ begin
   Result:=True;
 end;
 
-// @Result[64]
+// @Result[96]
 class function TSHA384.HMACHexa(const Key, Data: TBytes; out SignatureHexa: AnsiString): Boolean; overload;
 var
   aDigest: TSHA384Digest;
