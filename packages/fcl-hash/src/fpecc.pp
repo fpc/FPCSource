@@ -73,6 +73,7 @@ Function EccPublicKeyFromHexa(const Hexa: String) : TEccPublicKey; overload;
 // Major functions
 function EccMakeKey(out PublicKey: TEccPublicKey; out PrivateKey: TEccPrivateKey): Boolean;
 function EcdhSharedSecret(const PublicKey: TEccPublicKey; const PrivateKey: TEccPrivateKey; out Secret: TEccSecretKey): Boolean;
+// ECDSA signature (r, s) of Hash; a new nonce is drawn when r or s is 0. False when no random number is available.
 function EcdsaSign(const PrivateKey: TEccPrivateKey; const Hash: TEccHash; out Signature: TSignature): Boolean;
 function EcdsaVerify(const PublicKey: TEccPublicKey; const Hash: TEccHash; const Signature: TSignature): Boolean;
 
@@ -1137,18 +1138,20 @@ begin
     // r = x1 (mod n)
     if vli_cmp(Curve_N_32, P.x) <> 1 then
       vli_sub(P.x, P.x, Curve_N_32);
-  until not vli_isZero(p.x);
-  if not EccRandomScalar(Blind) then
-    Exit;
+    if vli_isZero(P.x) then
+      Continue;
+    if not EccRandomScalar(Blind) then
+      Exit;
+    EccBytes2Native(Temp, @PrivateKey);
+    vli_modMult(S, P.x, Temp, Curve_N_32); // s = r*d
+    EccBytes2Native(Temp, @Hash);
+    vli_modAdd(S, Temp, S, Curve_N_32); // s = e + r*d
+    vli_modMult(k, k, Blind, Curve_N_32); // k = k*b
+    vli_modInv(k, k, Curve_N_32); // k = 1 / (k*b)
+    vli_modMult(k, k, Blind, Curve_N_32); // k = 1 / k
+    vli_modMult(S, S, k, Curve_N_32); // s = (e + r*d) / k
+  until not vli_isZero(S);
   EccNative2Bytes(@Signature, P.x);
-  EccBytes2Native(Temp, @PrivateKey);
-  vli_modMult(S, P.x, Temp, Curve_N_32); // s = r*d
-  EccBytes2Native(Temp, @Hash);
-  vli_modAdd(S, Temp, S, Curve_N_32); // s = e + r*d
-  vli_modMult(k, k, Blind, Curve_N_32); // k = k*b
-  vli_modInv(k, k, Curve_N_32); // k = 1 / (k*b)
-  vli_modMult(k, k, Blind, Curve_N_32); // k = 1 / k
-  vli_modMult(S, S, k, Curve_N_32); // s = (e + r*d) / k
   EccNative2Bytes(@Signature[ECC_BYTES], S);
   Result := True;
 end;

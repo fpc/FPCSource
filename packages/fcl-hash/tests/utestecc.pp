@@ -5,7 +5,7 @@ unit utestecc;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, fpecc, fphashutils;
+  Classes, SysUtils, fpcunit, testregistry, fpecc, fphashutils, fptlsbigint;
 
 type
 
@@ -29,6 +29,7 @@ type
     procedure TestImportX963;
     procedure TestRandomScalarRejection;
     procedure TestImportX963FromXYLengths;
+    procedure TestSignRetriesZeroS;
   end;
 
 implementation
@@ -104,6 +105,16 @@ begin
       FillChar(VLI,SizeOf(VLI),$FF);
   end else
     VLI[0]:=2;
+  Result:=True;
+end;
+
+
+// Random scalars 1, 2, 3, ... counted by StubCalls
+function CountingScalars(out VLI: TVLI): Boolean;
+begin
+  Inc(StubCalls);
+  FillChar(VLI,SizeOf(VLI),0);
+  VLI[0]:=StubCalls;
   Result:=True;
 end;
 
@@ -346,6 +357,47 @@ begin
   finally
     EccGetRandomNumber:=lSaved;
   end;
+end;
+
+
+procedure TTestECC.TestSignRetriesZeroS;
+const
+  CurveN = 'FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551';
+  CurveGx = '6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296';
+var
+  lSaved: TEccGetRandomNumber;
+  lContext: TBigIntContext;
+  lRem: PBigInt;
+  lIsNegative: Boolean;
+  lHash: TEccHash;
+  lSignature: TSignature;
+  I: Integer;
+  lZero: Boolean;
+begin
+  // Hash e = n - (x(G)*d mod n): with nonce 1, s = e + r*d = 0 (mod n)
+  BIInitialize(lContext);
+  try
+    lRem:=BIDivide(lContext,
+                   BIMultiply(lContext,BIImport(lContext,HexStrToBytes(CurveGx)),BIImport(lContext,HexStrToBytes(KeyVectors[9,0]))),
+                   BIImport(lContext,HexStrToBytes(CurveN)),True);
+    BIExport(lContext,BISubtract(lContext,BIImport(lContext,HexStrToBytes(CurveN)),lRem,lIsNegative),@lHash,SizeOf(lHash));
+  finally
+    BITerminate(lContext);
+  end;
+  lSaved:=EccGetRandomNumber;
+  try
+    EccGetRandomNumber:=@CountingScalars;
+    StubCalls:=0;
+    AssertTrue('Signed',EcdsaSign(PrivateKeyFromHex(KeyVectors[9,0]),lHash,lSignature));
+    AssertTrue('A second nonce was drawn',StubCalls>2);
+  finally
+    EccGetRandomNumber:=lSaved;
+  end;
+  lZero:=True;
+  for I:=ECC_BYTES to 2*ECC_BYTES-1 do
+    lZero:=lZero and (lSignature[I]=0);
+  AssertFalse('s is not 0',lZero);
+  AssertTrue('Signature verifies',EcdsaVerify(PublicKeyFromHex(KeyVectors[9,1]),lHash,lSignature));
 end;
 
 
