@@ -431,7 +431,7 @@ implementation
        type
          Tsetpart=record
            range : boolean;      {Part is a range.}
-           start,stop : byte;    {Start/stop when range; Stop=element when an element.}
+           start,stop : longint; {Start/stop when range; Stop=element when an element.}
          end;
        var
          hreg,{$ifndef i8086} hreg2, {$endif}
@@ -483,8 +483,6 @@ implementation
              if is_small then
                maxcompares:=3;
              maxelem:=length(Aset)*8-1;
-             if maxelem>255 then
-               maxelem:=255;
              for i:=0 to maxelem do
               if DynSetIn(Aset, i) then
                begin

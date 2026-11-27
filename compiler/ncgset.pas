@@ -37,7 +37,7 @@ interface
 
        Tsetpart=record
          range : boolean;      {Part is a range.}
-         start,stop : byte;    {Start/stop when range; Stop=element when an element.}
+         start,stop : longint; {Start/stop when range; Stop=element when an element.}
        end;
        Tsetparts=array[1..8] of Tsetpart;
 
@@ -148,8 +148,6 @@ implementation
       if is_small then
         maxcompares:=3;
       maxelem:=length(Aset)*8-1;
-      if maxelem>255 then
-        maxelem:=255;
       for i:=0 to maxelem do
         if DynSetIn(Aset, i) then
           begin
