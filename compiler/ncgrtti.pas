@@ -1671,6 +1671,8 @@ implementation
              targetinfos[target_info.system]^.alignment.recordalignmin);
            tcb.emit_ord_const(def.size,sizesinttype);
            write_rtti_reference(tcb,def.elementdef,rt);
+           { element corresponding to bit 0 of the set }
+           tcb.emit_ord_const(def.setbase,sizesinttype);
            tcb.end_anonymous_record;
            tcb.end_anonymous_record;
            tcb.end_anonymous_record;

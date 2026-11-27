@@ -945,7 +945,11 @@ unit TypInfo;
                   tkSet:
                     (
                      SetSize : SizeInt;
-                     CompTypeRef : PPTypeInfo
+                     CompTypeRef : PPTypeInfo;
+{$ifndef VER3_2}
+                     { element corresponding to bit 0 of the set }
+                     SetBase : SizeInt;
+{$endif VER3_2}
                     )
               );
 {$ifndef FPUNONE}
