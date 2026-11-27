@@ -302,6 +302,10 @@ begin
   AssertFalse('Point with a wrong y rejected',EccImportX963(@lBadPoint[0],Length(lBadPoint),lPublicKey));
   AssertFalse('Point with a wrong y rejected from x and y',EccImportX963FromXY(@lBadPoint[1],ECC_BYTES,@lBadPoint[1+ECC_BYTES],ECC_BYTES,lPublicKey));
   AssertTrue('EccPublicKeyFromHexa rejects a wrong y',PublicKeyFromHexaRaises(BytesToHexStr(lBadPoint)));
+  lBadPoint:=Concat(lPoint,TBytes([0,0]));
+  AssertFalse('Point followed by 2 extra bytes rejected',EccImportX963(@lBadPoint[0],Length(lBadPoint),lPublicKey));
+  AssertFalse('Point followed by 1 extra byte rejected',EccImportX963(@lBadPoint[0],Length(lPoint)+1,lPublicKey));
+  AssertFalse('Point without its last byte rejected',EccImportX963(@lPoint[0],Length(lPoint)-1,lPublicKey));
 end;
 
 

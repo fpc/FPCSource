@@ -64,6 +64,8 @@ type
 
 // Util function to work with ASN.1
 procedure EccPublicKeyFromPrivateKey(out PublicKey: TEccPublicKey; const PrivateKey: TEccPrivateKey);
+// Compressed PublicKey from an uncompressed point: InputLen = 1+2*ECC_BYTES, byte $04 then x and y.
+// False for another length or prefix, or a point not on the curve.
 function EccImportX963(Input: PByteBuffer; InputLen: Integer; out PublicKey: TEccPublicKey): Boolean;
 function EccImportX963FromXY(InputX: PByteBuffer; InputXLen: Integer; InputY: PByteBuffer; InputYLen: Integer; out PublicKey: TEccPublicKey): Boolean;
 function EccExportX963(const PublicKey: TEccPublicKey; Output: PByteBuffer; OutputLen: Integer): Boolean;
@@ -902,9 +904,7 @@ begin
   Result := False;
   if Input = nil then
     Exit;
-  if InputLen < 1 + 2*ECC_BYTES then
-    Exit;
-  if (InputLen and 1) = 0 then // Check Length (Must be Odd)
+  if InputLen <> 1 + 2*ECC_BYTES then
     Exit;
   if Input^[0] <> 4 then // Check for 4 (Uncompressed)
     Exit;
