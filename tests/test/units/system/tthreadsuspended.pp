@@ -12,6 +12,16 @@ uses
 var
   gRan: LongInt;
 
+{$if defined(CPUAARCH64) or defined(CPUPOWERPC64)}
+{ aarch64-linux and powerpc64-linux seem to use
+  #define PTHREAD_STACK_MIN    131072
+}
+const 
+   PTHREAD_STACK_MIN = 128*1024;
+{$else}
+const 
+   PTHREAD_STACK_MIN = 64*1024;
+{$endif}
 
 // Sets gRan and returns the parameter as result
 function MarkRun(aParam: Pointer): PtrInt;
@@ -74,7 +84,8 @@ begin
     halt(8);
     end;
 
-  lHandle:=BeginThread(@MarkRun,Pointer(9),lId,True,64*1024);
+  { Check with smallest allowed stack size }
+  lHandle:=BeginThread(@MarkRun,Pointer(9),lId,True,PTHREAD_STACK_MIN);
   if lHandle=TThreadHandle(0) then
     halt(9);
   ResumeThread(lHandle);
