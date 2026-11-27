@@ -36,6 +36,7 @@ Type
 
 Procedure BytesFromVar(out aBytes : TBytes; aLocation : Pointer; aSize : Integer);
 Function BytesFromVar(aLocation : Pointer; aSize : Integer) : TBytes;
+// Copy at most aSize bytes of aBytes to aLocation; the rest of the aSize bytes at aLocation is set to zero.
 Procedure BytesToVar(const aBytes : TBytes; out aLocation; aSize : Integer);
 // Copy all bytes of aBytes to the memory at aLocation, which must have room for Length(aBytes) bytes.
 Procedure BytesToVar(const aBytes : TBytes; aLocation : Pointer);
@@ -131,10 +132,19 @@ end;
 
 procedure BytesToVar(const aBytes: TBytes; out aLocation; aSize: Integer);
 
+var
+  lCount: Integer;
+
 begin
-  if aSize>Length(aBytes) then
-    aSize:=Length(aBytes);
-  Move(aBytes[0],aLocation,aSize);
+  if aSize<=0 then
+    Exit;
+  lCount:=Length(aBytes);
+  if lCount>aSize then
+    lCount:=aSize;
+  if lCount>0 then
+    Move(aBytes[0],aLocation,lCount);
+  if aSize>lCount then
+    FillChar(PByte(@aLocation)[lCount],aSize-lCount,0);
 end;
 
 procedure BytesToVar(const aBytes: TBytes; aLocation: Pointer);

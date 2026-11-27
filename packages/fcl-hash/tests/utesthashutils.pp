@@ -21,6 +21,7 @@ type
     procedure TestFallbackGeneratorSeed;
     procedure TestConstantTimeEqual;
     procedure TestDigestIsEqual;
+    procedure TestBytesToVarSize;
   end;
 
 implementation
@@ -193,6 +194,31 @@ begin
   AssertTrue('SHA-512 same digest',lSHA512.IsEqual(lDigest512));
   lDigest512[0]:=lDigest512[0] xor 1;
   AssertFalse('SHA-512 first byte differs',lSHA512.IsEqual(lDigest512));
+end;
+
+
+procedure TTestHashUtils.TestBytesToVarSize;
+var
+  lBuffer: array[0..9] of Byte;
+  I: Integer;
+begin
+  FillChar(lBuffer,SizeOf(lBuffer),$EE);
+  BytesToVar(TBytes([1,2,3]),lBuffer,8);
+  AssertEquals('Byte 0',1,lBuffer[0]);
+  AssertEquals('Byte 2',3,lBuffer[2]);
+  for I:=3 to 7 do
+    AssertEquals('Byte '+IntToStr(I)+' set to zero',0,lBuffer[I]);
+  AssertEquals('Byte after aSize unchanged',$EE,lBuffer[8]);
+  FillChar(lBuffer,SizeOf(lBuffer),$EE);
+  BytesToVar(TBytes([1,2,3,4,5]),lBuffer,3);
+  AssertEquals('Only aSize bytes copied',3,lBuffer[2]);
+  AssertEquals('Byte after aSize unchanged with longer input',$EE,lBuffer[3]);
+  FillChar(lBuffer,SizeOf(lBuffer),$EE);
+  BytesToVar(nil,lBuffer,4);
+  AssertEquals('Empty input sets aSize bytes to zero',0,lBuffer[3]);
+  AssertEquals('Byte after aSize unchanged with empty input',$EE,lBuffer[4]);
+  BytesToVar(TBytes([1]),lBuffer,0);
+  AssertEquals('Size 0 changes nothing',0,lBuffer[0]);
 end;
 
 
