@@ -34,6 +34,8 @@ uses
 const
   RSAPublicKeyOID = '1.2.840.113549.1.1.1';
 
+  // Hash algorithm in a PKCS#1 v1.5 DigestInfo: the last arc of OID 2.16.840.1.101.3.4.2.x.
+  // fcl-hash has no SHA-512/224, SHA-512/256 or SHA-3 code: those hashes must be computed elsewhere.
   RSADigestInfoSHA256 = 1;
   RSADigestInfoSHA384 = 2;
   RSADigestInfoSHA512 = 3;
@@ -133,6 +135,8 @@ function RSADecryptVerify(var RSA: TRSA; const Input: PByte; Output: PByte; Len:
 function RS256VerifyFromPublicKeyHexa(const PublicKeyHexa, SignatureBaseHash, Signature: String): Boolean;
 function TestRS256Verify: Boolean;
 
+// DigestInfo prefix for a hash of len bytes with algorithm SHAType (one of the RSADigestInfo constants);
+// the hash itself follows the prefix.
 function EncodeDigestInfoSHA(SHAType, len: byte): TBytes;
 
 //------------------------------------------------------------------------------
