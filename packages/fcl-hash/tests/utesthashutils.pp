@@ -25,6 +25,7 @@ type
     procedure TestStreamSeveralReads;
     procedure TestBigIntImportEmpty;
     procedure TestBigIntExportSize;
+    procedure TestFinalClearsState;
   end;
 
 implementation
@@ -305,6 +306,48 @@ begin
   finally
     BITerminate(lContext);
   end;
+end;
+
+
+procedure TTestHashUtils.TestFinalClearsState;
+
+  // True when the aSize bytes at aData are all zero
+  function AllZero(aData: PByte; aSize: Integer): Boolean;
+  var
+    I: Integer;
+  begin
+    Result:=True;
+    for I:=0 to aSize-1 do
+      Result:=Result and (aData[I]=0);
+  end;
+
+var
+  lSHA256: TSHA256;
+  lSHA224: TSHA224;
+  lSHA512: TSHA512;
+  lSHA384: TSHA384;
+  lHexa: AnsiString;
+begin
+  lSHA256.Init;
+  lSHA256.Update(TBytes([1,2,3]));
+  lSHA256.Final;
+  AssertTrue('SHA-256 state cleared',AllZero(@lSHA256.Base,SizeOf(lSHA256.Base)));
+  TSHA256.DigestHexa(TBytes([1,2,3]),lHexa);
+  AssertEquals('SHA-256 digest kept',lHexa,UpperCase(BytesToHexStr(BytesFromVar(@lSHA256.Digest,SizeOf(lSHA256.Digest)))));
+  lSHA224.Init;
+  lSHA224.Update(TBytes([1,2,3]));
+  lSHA224.Final;
+  AssertTrue('SHA-224 state cleared',AllZero(@lSHA224.Base,SizeOf(lSHA224.Base)));
+  lSHA512.Init;
+  lSHA512.Update(TBytes([1,2,3]));
+  lSHA512.Final;
+  AssertTrue('SHA-512 state cleared',AllZero(@lSHA512.Base,SizeOf(lSHA512.Base)));
+  TSHA512.DigestHexa(TBytes([1,2,3]),lHexa);
+  AssertEquals('SHA-512 digest kept',lHexa,UpperCase(BytesToHexStr(BytesFromVar(@lSHA512.Digest,SizeOf(lSHA512.Digest)))));
+  lSHA384.Init;
+  lSHA384.Update(TBytes([1,2,3]));
+  lSHA384.Final;
+  AssertTrue('SHA-384 state cleared',AllZero(@lSHA384.Base,SizeOf(lSHA384.Base)));
 end;
 
 

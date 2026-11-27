@@ -64,6 +64,7 @@ Type
   TSHA256 = record
     Base : TSHA256Base;
     Digest: TSHA256Digest;
+    // Finish the hash: the result is in Digest and the internal state is cleared. Call Init before hashing again.
     procedure Final;
     procedure Init;
     function IsEqual(const ADigest: TSHA256Digest): Boolean;
@@ -101,6 +102,7 @@ Type
   TSHA224 = record
     Base : TSHA256Base;
     Digest: TSHA224Digest;
+    // Finish the hash: the result is in Digest and the internal state is cleared. Call Init before hashing again.
     procedure Final;
     procedure Init;
     function IsEqual(const ADigest: TSHA224Digest): Boolean;
@@ -307,7 +309,6 @@ begin
   Context[5] := SwapEndian(Context[5]);
   Context[6] := SwapEndian(Context[6]);
   Context[7] := SwapEndian(Context[7]);
-//  Self.Init; // uncomment if you need security protection against memory inspection
 end;
 
 procedure TSHA256Base.Update(PBuf: PByte; Size: SizeUInt);
@@ -358,6 +359,7 @@ procedure TSHA256.Final;
 begin
   Base.Final;
   Move(Base.Context,Digest,Sizeof(Digest));
+  FillChar(Base,SizeOf(Base),0);
 end;
 
 function TSHA256.IsEqual(const ADigest: TSHA256Digest): Boolean;
@@ -609,6 +611,7 @@ procedure TSHA224.Final;
 begin
   Base.Final;
   Move(Base.Context,Digest,Sizeof(Digest));
+  FillChar(Base,SizeOf(Base),0);
 end;
 
 function TSHA224.IsEqual(const ADigest: TSHA224Digest): Boolean;

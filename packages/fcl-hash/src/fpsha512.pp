@@ -60,6 +60,7 @@ Type
     function IsEqual(const ADigest: TSHA512Digest): Boolean;
     procedure OutputHexa(out Result: AnsiString);
     procedure Compress;
+    // Finish the hash: the result is in Digest and the internal state is cleared. Call Init before hashing again.
     procedure Final;
     procedure Init;
     procedure Update(PBuf: PByte; Size: SizeUInt); overload;
@@ -98,6 +99,7 @@ Type
     function IsEqual(const ADigest: TSHA384Digest): Boolean;
     procedure OutputHexa(out Result: AnsiString);
     procedure Compress;
+    // Finish the hash: the result is in Digest and the internal state is cleared. Call Init before hashing again.
     procedure Final;
     procedure Init;
     procedure Update(PBuf: PByte; Size: SizeUInt); overload;
@@ -412,6 +414,7 @@ procedure TSHA512.Final;
 begin
   Base.Final;
   Move(Base.Context, Digest, Sizeof(Digest));
+  FillChar(Base, SizeOf(Base), 0);
 end;
 
 
@@ -670,6 +673,7 @@ procedure TSHA384.Final;
 begin
   Base.Final;
   Move(Base.Context, Digest, Sizeof(Digest));
+  FillChar(Base, SizeOf(Base), 0);
 end;
 
 
