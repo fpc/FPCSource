@@ -117,6 +117,8 @@ type
     procedure DoExecute(const ARTObjects: TFPList); override;
     procedure RenderFrame(const ABand: TFPReportCustomBand; const AFrame: TFPReportFrame; const APos: TFPReportPoint; const AWidth, AHeight: TFPReportUnits); virtual;
     procedure RenderMemo(const ABand: TFPReportCustomBand; const AMemo: TFPReportCustomMemo); virtual;
+    // Draw the underline and strike-through lines of a text block with baseline aBaseLine
+    procedure RenderFontEffects(aEffects: TFPReportFontEffects; aBlock: TFPTextBlock; aX, aBaseLine: TFPReportUnits); virtual;
     procedure RenderShape(const ABand: TFPReportCustomBand; const AShape: TFPReportCustomShape); virtual;
     procedure RenderImage(const ABand: TFPReportCustomBand; const AImage: TFPReportCustomImage); virtual;
     procedure RenderCheckbox(const ABand: TFPReportCustomBand; const ACheckbox: TFPReportCustomCheckbox); virtual;
@@ -487,7 +489,40 @@ begin
         mmToPixels(lYPos),
         {$if FPC_FULLVERSION>30000}txtblk.Text{$ELSE} UTF8Decode(txtblk.Text){$ENDIF}
     );
+    if lMemo.Font.Effects<>[] then
+      RenderFontEffects(lMemo.Font.Effects, txtblk, lXPos, lYPos);
   end;
+end;
+
+procedure TFPReportExportfpImage.RenderFontEffects(aEffects: TFPReportFontEffects; aBlock: TFPTextBlock;
+  aX, aBaseLine: TFPReportUnits);
+
+var
+  lThickness: TFPReportUnits;
+
+  // Fill a band of lThickness mm centered on aY, at least 1 pixel high
+  Procedure DrawEffectLine(aY: TFPReportUnits);
+
+  var
+    lTop, lBottom: Integer;
+
+  begin
+    lTop:=mmToPixels(aY-lThickness/2);
+    lBottom:=mmToPixels(aY+lThickness/2);
+    if lBottom<=lTop then
+      lBottom:=lTop+1;
+    Canvas.FillRect(mmToPixels(aX), lTop, mmToPixels(aX+aBlock.Width), lBottom);
+  end;
+
+begin
+  lThickness:=aBlock.Height/12;
+  Canvas.Pen.Style:=psClear;
+  Canvas.Brush.Style:=bsSolid;
+  Canvas.Brush.FPColor:=ColorToRGBTriple(aBlock.FGColor);
+  if feUnderline in aEffects then
+    DrawEffectLine(aBaseLine+aBlock.Height/8);
+  if feStrikeThrough in aEffects then
+    DrawEffectLine(aBaseLine-aBlock.Height/3);
 end;
 
 procedure TFPReportExportfpImage.RenderShape(const ABand: TFPReportCustomBand; const AShape: TFPReportCustomShape);

@@ -1116,7 +1116,7 @@ var
   lMemo: TFPReportMemo;
   i,xOffset,yOffset: integer;
   txtblk: TFPTextBlock;
-  BS,S,aFamily,aStyle,aWeight : String;
+  BS,S,aFamily,aStyle,aWeight,lDecoration : String;
   bDiv,span : THTMLElement;
   FixedPos : Boolean;
   L : THTMLLinkElement;
@@ -1141,6 +1141,17 @@ begin
     end;
   BS:=Format('position: %s; ',[PosStrings[FixedPos]]);
   BS:=BS+Format(' font-size: %dpx;',[CalcFontSize(lMemo.Font.Size)]);
+  lDecoration:='';
+  if lMemo.Font.Effects<>[] then
+    begin
+    lDecoration:=' text-decoration:';
+    if feUnderline in lMemo.Font.Effects then
+      lDecoration:=lDecoration+' underline';
+    if feStrikeThrough in lMemo.Font.Effects then
+      lDecoration:=lDecoration+' line-through';
+    lDecoration:=lDecoration+';';
+    end;
+  BS:=BS+lDecoration;
   // BS:=BS+' overflow: hidden;';
   { Frame must be drawn before the text as it could have a fill color. }
 //  Writeln('Memo : ',lMemo.Text);
@@ -1148,6 +1159,7 @@ begin
     begin
     S:=Format('position: %s; ',[PosStrings[FixedPos]]);
     S:=S+Format(' font-size: %dpx;',[CalcFontSize(lMemo.Font.Size)]);
+    S:=S+lDecoration;
     if FontNameToFontFamilyAndStyle(lMemo.Font.Name,aFamily,aStyle,AWeight) then
       begin
       S:=S+Format(' font-family: "%s";',[aFamily]);

@@ -163,6 +163,8 @@ type
             moResetAggregateOnColumn
             );
   TFPReportMemoOptions    = set of TFPReportMemoOption;
+  TFPReportFontEffect     = (feUnderline, feStrikeThrough);
+  TFPReportFontEffects    = set of TFPReportFontEffect;
   TFPReportWordOverflow = (woTruncate, // truncate the word
                            woOverflow, // Allow to overflow
                            woSplit,    // Split word at max char count that fits length.
@@ -357,9 +359,11 @@ type
     FFontName: string;
     FFontSize: integer;
     FFontColor: TFPReportColor;
+    FFontEffects: TFPReportFontEffects;
     procedure   SetFontName(const avalue: string);
     procedure   SetFontSize(const avalue: integer);
     procedure   SetFontColor(const avalue: TFPReportColor);
+    procedure   SetFontEffects(const aValue: TFPReportFontEffects);
     Procedure Changed;
     Property OnChanged : TNotifyEvent Read FOnChanged Write FOnChanged;
   public
@@ -370,6 +374,8 @@ type
     { value is in font Point units }
     property    Size: integer read FFontSize write SetFontSize default 10;
     property    Color: TFPReportColor read FFontColor write SetFontColor default clBlack;
+    // Lines drawn under or through the text
+    property    Effects: TFPReportFontEffects read FFontEffects write SetFontEffects default [];
   end;
 
 
@@ -2740,6 +2746,70 @@ begin
   end;
 end;
 
+// Convert a comma-separated list of font effect names to a set
+function StringToFontEffects(const aValue: string): TFPReportFontEffects;
+
+var
+  lList: TStrings;
+  lIndex, lOrd: integer;
+
+begin
+  Result := [];
+  lList := TStringList.Create;
+  try
+    lList.Delimiter := ',';
+    lList.DelimitedText := aValue;
+    for lIndex := 0 to lList.Count - 1 do
+      begin
+      lOrd := GetEnumValue(TypeInfo(TFPReportFontEffect), lList[lIndex]);
+      if lOrd >= 0 then
+        Include(Result, TFPReportFontEffect(lOrd));
+      end;
+  finally
+    lList.Free;
+  end;
+end;
+
+
+// Convert a set of font effects to a comma-separated list of names
+function FontEffectsToString(const aValue: TFPReportFontEffects): String;
+
+var
+  lEffect: TFPReportFontEffect;
+
+begin
+  Result := '';
+  for lEffect in aValue do
+    begin
+    if Result <> '' then
+      Result := Result + ',';
+    Result := Result + GetEnumName(TypeInfo(TFPReportFontEffect), Ord(lEffect));
+    end;
+end;
+
+
+// Write the font properties
+procedure WriteReportFont(aWriter: TFPReportStreamer; aFont: TFPReportFont);
+
+begin
+  aWriter.WriteString('FontName', aFont.Name);
+  aWriter.WriteInteger('FontSize', aFont.Size);
+  aWriter.WriteQWord('FontColor', aFont.Color);
+  aWriter.WriteString('FontEffects', FontEffectsToString(aFont.Effects));
+end;
+
+
+// Read the font properties, keeping the current values as default
+procedure ReadReportFont(aReader: TFPReportStreamer; aFont: TFPReportFont);
+
+begin
+  aFont.Name := aReader.ReadString('FontName', aFont.Name);
+  aFont.Size := aReader.ReadInteger('FontSize', aFont.Size);
+  aFont.Color := QWordToReportColor(aReader.ReadQWord('FontColor', aFont.Color));
+  aFont.Effects := StringToFontEffects(aReader.ReadString('FontEffects', FontEffectsToString(aFont.Effects)));
+end;
+
+
 function FPReportStreamToMIMEEncodeString(const AStream: TStream): string;
 var
   OutStream: TStringStream;
@@ -5020,11 +5090,7 @@ begin
 
   AWriter.WriteBoolean('UseParentFont', UseParentFont);
   if not UseParentFont then
-  begin
-    AWriter.WriteString('FontName', Font.Name);
-    AWriter.WriteInteger('FontSize', Font.Size);
-    AWriter.WriteQWord('FontColor', Font.Color);
-  end;
+    WriteReportFont(AWriter, Font);
 
   AWriter.WriteFloat('LineSpacing', LineSpacing);
   AWriter.WriteQWord('LinkColor', LinkColor);
@@ -5250,11 +5316,7 @@ begin
   FCullThreshold := AReader.ReadInteger('CullThreshold', CullThreshold);
   UseParentFont := AReader.ReadBoolean('UseParentFont', UseParentFont);
   if not UseParentFont then
-    begin
-    Font.Name := AReader.ReadString('FontName', Font.Name);
-    Font.Size := AReader.ReadInteger('FontSize', Font.Size);
-    Font.Color := QWordToReportColor(AReader.ReadQWord('FontColor', Font.Color));
-    end
+    ReadReportFont(AReader, Font)
   else
     ReAssignParentFont;
   FLineSpacing := AReader.ReadFloat('LineSpacing', LineSpacing);
@@ -7864,9 +7926,7 @@ begin
   Pagesize.PaperName := AReader.ReadString('PageSize.PaperName', 'A4');
   Pagesize.Width := AReader.ReadFloat('PageSize.Width', 210);
   Pagesize.Height := AReader.ReadFloat('PageSize.Height', 297);
-  Font.Name := AReader.ReadString('FontName', Font.Name);
-  Font.Size := AReader.ReadInteger('FontSize', Font.Size);
-  Font.Color := QWordToReportColor(AReader.ReadQWord('FontColor', Font.Color));
+  ReadReportFont(AReader, Font);
   FDataName:=AReader.ReadString('Data','');
   if FDataName<>'' then
     RestoreDataFromNames;
@@ -8005,9 +8065,7 @@ begin
   AWriter.WriteString('PageSize.PaperName', PageSize.PaperName);
   AWriter.WriteFloat('PageSize.Width', PageSize.Width);
   AWriter.WriteFloat('PageSize.Height', PageSize.Height);
-  AWriter.WriteString('FontName', Font.Name);
-  AWriter.WriteInteger('FontSize', Font.Size);
-  AWriter.WriteQWord('FontColor', Font.Color);
+  WriteReportFont(AWriter, Font);
   if Assigned(FData) then
     AWriter.WriteString('Data',FData.Name);
   AWriter.PushElement('Margins');
@@ -9537,11 +9595,7 @@ begin
   AWriter.WriteBoolean('UseParentFont', UseParentFont);
   AWriter.WriteString('BandPosition', BandPositionToString(FBandPosition));
   if not UseParentFont then
-  begin
-    AWriter.WriteString('FontName', Font.Name);
-    AWriter.WriteInteger('FontSize', Font.Size);
-    AWriter.WriteQWord('FontColor', Font.Color);
-  end;
+    WriteReportFont(AWriter, Font);
 end;
 
 procedure TFPReportCustomBand.BeginRuntimeProcessing;
@@ -9646,11 +9700,7 @@ begin
   FBandPosition := StringToBandPosition(AReader.ReadString('BandPosition', 'bpNormal'));
   UseParentFont := AReader.ReadBoolean('UseParentFont', UseParentFont);
   if not UseParentFont then
-    begin
-    Font.Name := AReader.ReadString('FontName', Font.Name);
-    Font.Size := AReader.ReadInteger('FontSize', Font.Size);
-    Font.Color := QWordToReportColor(AReader.ReadQWord('FontColor', Font.Color));
-    end
+    ReadReportFont(AReader, Font)
   else
     ReAssignParentFont;
   S:=AReader.ReadString('Data','');
@@ -10518,6 +10568,12 @@ begin
   Changed;
 end;
 
+procedure TFPReportFont.SetFontEffects(const aValue: TFPReportFontEffects);
+begin
+  FFontEffects := aValue;
+  Changed;
+end;
+
 procedure TFPReportFont.Changed;
 begin
   If Assigned(FOnChanged) then
@@ -10542,6 +10598,7 @@ begin
     FFontName := o.Name;
     FFontSize := o.Size;
     FFontColor := o.Color;
+    FFontEffects := o.Effects;
     Changed;
     end
   else

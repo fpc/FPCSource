@@ -319,7 +319,8 @@ begin
 
     { Text color is always a fill color, hence the False parameter. }
     APage.SetColor(txtblk.FGColor, false);
-    APage.WriteText(lPt1.X + txtblk.Pos.Left, lYPos, txtblk.Text);
+    APage.WriteText(lPt1.X + txtblk.Pos.Left, lYPos, txtblk.Text, 0.0,
+      feUnderline in lMemo.Font.Effects, feStrikeThrough in lMemo.Font.Effects);
 
     // process hyperlink if available
     if txtblk is TFPHTTPTextBlock then

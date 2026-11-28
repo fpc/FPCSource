@@ -441,6 +441,7 @@ Var
   aBand: TFPReportCustomBand;
   aColor,aSize,aFlag : Integer;
   aFont: TFPFontCacheItem;
+  lEffects: TFPReportFontEffects;
 
 begin
   aDataNode := ObjNode.FindNode('Size');
@@ -481,6 +482,12 @@ begin
   Result.Font.Size:=aSize;
   aColor := StrToIntDef(GetProperty(aDataNode,'Color'),0);
   Result.Font.Color:= RGBToReportColor(Red(aColor),Green(aColor),Blue(aColor));
+  lEffects:=[];
+  if pos('fsUnderline',GetProperty(aDataNode,'Style'))>0 then
+    Include(lEffects,feUnderline);
+  if pos('fsStrikeOut',GetProperty(aDataNode,'Style'))>0 then
+    Include(lEffects,feStrikeThrough);
+  Result.Font.Effects:=lEffects;
 end;
 
 Function TFPLazReport.ConvertLine(ObjNode : TDOMNode; APage : TFPReportCustomPage) : TFPReportShape;
