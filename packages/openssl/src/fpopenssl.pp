@@ -87,6 +87,8 @@ Type
     Function SetMinProtoVersion(aVersion : cInt) : cLong;
     procedure SetTlsextServernameCallback(cb: PCallbackCb);
     procedure SetTlsextServernameArg(ATlsextcbp: SslPtr);
+    // Switch to the context in ATlsextcbp whose domains contain the client's SNI name. Entry 0 is this context;
+    // an unknown name is not acknowledged and keeps this context. ATlsextcbp must stay alive while the context is used.
     procedure ActivateServerSNI(ATlsextcbp: TTlsExtCtx);
     procedure SetEcdhAuto(const onoff: boolean);
     Property CTX: PSSL_CTX Read FCTX;
@@ -196,6 +198,7 @@ var
   sHostName: string;
   o, i, f: integer;
 begin
+  result := SSL_TLSEXT_ERR_OK;
   sHostName := SSLGetServername(ASSL, TLSEXT_NAMETYPE_host_name);
   if (sHostName <> '') and (length(arg) > 0) then
   begin
@@ -212,10 +215,9 @@ begin
     end;
     if f = -1 then
       result := SSL_TLSEXT_ERR_NOACK
-    else if f > 1 then // first one should be the main certificate
+    else if f > 0 then // first one should be the main certificate
       SslSetSslCtx(ASSL, arg[f].CTX.CTX);
   end;
-  result := SSL_TLSEXT_ERR_OK;
 end;
 
 { TOpenSSLX509Certificate }
