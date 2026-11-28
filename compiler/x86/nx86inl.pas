@@ -1155,7 +1155,7 @@ implementation
         var
          hregister,
          hregister2: tregister;
-         setbase   : aint;
+         setbase   : asizeint;
          bitsperop,l : longint;
          cgop : topcg;
          asmop : tasmop;
