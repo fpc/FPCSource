@@ -180,6 +180,7 @@ begin
      ((VargSrc.VType and varArray) <> 0) or
      ((VarType and varByRef) <> 0) then
     Exit(VAR_INVALIDARG);
+  VariantInit(Tmp);
   Result:=VariantCopyInd(Tmp, VargSrc);
   if Result = VAR_OK then
     try
