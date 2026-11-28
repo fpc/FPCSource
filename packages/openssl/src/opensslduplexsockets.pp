@@ -223,7 +223,7 @@ begin
     if Result then
       begin
       r:=SSL.Shutdown;
-      FlushOutput(True,0,lBlocked);
+      FlushOutput(True,DeadlineFromTimeout,lBlocked);
       if (not BiDirectional) or (r<>0) then
         Result:=CheckSSL(r)
       else

@@ -75,6 +75,7 @@ Type
     function Close : Boolean; override;
     function Accept : Boolean; override;
     function Shutdown(BiDirectional : Boolean): boolean; override;
+    // Writes Count bytes; -1 with LastError EsockEWOULDBLOCK when Socket.IOTimeout passes without progress
     function Send(Const Buffer; Count: Integer): Integer; override;
     function Recv(Const Buffer; Count: Integer): Integer; override;
     function BytesAvailable: Integer; override;
@@ -643,6 +644,8 @@ function TOpenSSLSocketHandler.Send(Const Buffer; Count: Integer): Integer;
 
 var
   e: integer;
+  lDeadline: QWord;
+  lCheck: TSocketStates;
 
 begin
   repeat
@@ -661,10 +664,21 @@ begin
     finally
       LeaveCriticalSection(FLock);
     end;
-    if (e=SSL_ERROR_WANT_READ) then
-      WaitForSocket([sosCanRead],0)
-    else if (e=SSL_ERROR_WANT_WRITE) then
-      WaitForSocket([sosCanWrite],0);
+    if e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE] then
+      begin
+      if e=SSL_ERROR_WANT_READ then
+        lCheck:=[sosCanRead]
+      else
+        lCheck:=[sosCanWrite];
+      // Timeout per wait, as SO_SNDTIMEO on a blocking socket
+      lDeadline:=DeadlineFromTimeout;
+      if not WaitForSocket(lCheck,lDeadline) then
+        begin
+        SetIOError(SSL_ERROR_SYSCALL);
+        FLastError:=EsockEWOULDBLOCK;
+        Exit(-1);
+        end;
+      end;
   until Not (e in [SSL_ERROR_WANT_READ,SSL_ERROR_WANT_WRITE]);
 end;
 
