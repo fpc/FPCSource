@@ -5658,7 +5658,9 @@ begin
   _i2dX509bio := GetProcAddr(SSLUtilHandle, 'i2d_X509_bio');
   _d2iX509bio := GetProcAddr(SSLUtilHandle, 'd2i_X509_bio');
   _PEMReadBioX509 := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_X509');
-  _SkX509PopFree := GetProcAddr(SSLUtilHandle, 'SK_X509_POP_FREE');
+  _SkX509PopFree := GetProcAddr(SSLUtilHandle, 'OPENSSL_sk_pop_free');
+  if not Assigned(_SkX509PopFree) then
+    _SkX509PopFree := GetProcAddr(SSLUtilHandle, 'sk_pop_free');
   _i2dPrivateKeyBio := GetProcAddr(SSLUtilHandle, 'i2d_PrivateKey_bio');
   _EVP_enc_null := GetProcAddr(SSLUtilHandle, 'EVP_enc_null');
   _EVP_rc2_cbc := GetProcAddr(SSLUtilHandle, 'EVP_rc2_cbc');

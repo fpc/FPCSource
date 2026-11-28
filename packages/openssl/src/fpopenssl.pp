@@ -632,13 +632,18 @@ begin
         Result:=UseCertificate(c);
         if (Result>0) then
           Result:=UsePrivateKey(pk);
+        // SSL_CTX_set1_chain: the context takes its own references to the certificates
+        if (Result>0) and (ca<>nil) then
+          if SslCTXCtrl(FCTX,SSL_CTRL_CHAIN,1,ca)<>1 then
+            Result:=0;
         end;
   finally
     if pk<>Nil then
       EvpPkeyFree(pk);
     if c<>nil then
       X509free(c);
-//  SkX509PopFree(ca,_X509Free);
+    if ca<>nil then
+      SkX509PopFree(ca);
     if p12<>Nil then
       PKCS12free(p12);
     BioFreeAll(b);
