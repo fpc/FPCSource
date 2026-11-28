@@ -129,6 +129,7 @@ ResourceString
   SErrNotObserver               = '"%s" is not an observer';
   SErrPropertyNotFound          = 'Unknown property: "%s"';
   SerrInvalidPropertyType       = 'Invalid property type from streamed property: %d';
+  SErrSetElementOutOfRange      = 'Set element %d is out of range';
   SErrUnknownEnumValue          = 'Unknown enumeration value: "%s"';
   SFailedToCallConstructor      = 'TStrings descendant "%s" failed to call inherited constructor';
   SFB                           = 'FB';
