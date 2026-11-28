@@ -48,6 +48,7 @@ Type
   TSSLContext = Class(TObject)
   private
     FCTX: PSSL_CTX;
+    FSNIHosts: TTlsExtCtx;
     FALPNWire : TBytes;   // ALPN preference list, [len][bytes]… wire form (RFC 7301); read by the unit-level ALPN select callback
     function UsePrivateKey(pkey: SslPtr): cInt;
     function UsePrivateKeyASN1(pk: cInt; d: String; len: cLong): cInt;
@@ -87,8 +88,10 @@ Type
     Function SetMinProtoVersion(aVersion : cInt) : cLong;
     procedure SetTlsextServernameCallback(cb: PCallbackCb);
     procedure SetTlsextServernameArg(ATlsextcbp: SslPtr);
-    // Switch to the context in ATlsextcbp whose domains contain the client's SNI name. Entry 0 is this context;
-    // an unknown name is not acknowledged and keeps this context. ATlsextcbp must stay alive while the context is used.
+    // Switch to the context in ATlsextcbp whose domains contain the client's SNI name, compared case-insensitively.
+    // Entry 0 is this context; an unknown name is not acknowledged and keeps this context.
+    // This context keeps a reference to the table; the contexts in it must outlive this context.
+    // Each context needs its own settings (ALPN, verification, protocol versions): they are not inherited.
     procedure ActivateServerSNI(ATlsextcbp: TTlsExtCtx);
     procedure SetEcdhAuto(const onoff: boolean);
     Property CTX: PSSL_CTX Read FCTX;
@@ -193,30 +196,41 @@ begin
     BioFreeAll(B);
 end;
 
-function SelectSNIContextCallback(ASSL: TSSL; ad: integer; arg: TTlsExtCtx): integer; cdecl;
+// OpenSSL servername callback: switches aSSL to the context of the TTlsExtCtx entry at aArg matching the SNI name.
+function SelectSNIContextCallback(aSSL: PSSL; aAlert: PCInt; aArg: Pointer): cInt; cdecl;
+
 var
-  sHostName: string;
-  o, i, f: integer;
+  lHostName: AnsiString;
+  lIdx, lDom, lFound: Integer;
+  lHosts: TTlsExtCtx;
+
 begin
-  result := SSL_TLSEXT_ERR_OK;
-  sHostName := SSLGetServername(ASSL, TLSEXT_NAMETYPE_host_name);
-  if (sHostName <> '') and (length(arg) > 0) then
-  begin
-    f := -1;
-    for o:=0 to length(arg)-1 do
+  Result := SSL_TLSEXT_ERR_OK;
+  lHostName := SSLGetServername(aSSL, TLSEXT_NAMETYPE_host_name);
+  if (lHostName = '') or (aArg = nil) then
+    Exit;
+  lFound := -1;
+  // Borrow the table without reference counting
+  Pointer(lHosts) := aArg;
+  try
+    for lIdx := 0 to Length(lHosts)-1 do
     begin
-      for i:=0 to length(arg[o].domains)-1 do
-        if sHostName = arg[o].domains[i] then
+      for lDom := 0 to Length(lHosts[lIdx].domains)-1 do
+        if SameText(lHostName, lHosts[lIdx].domains[lDom]) then
         begin
-          f := o;
-          break;
+          lFound := lIdx;
+          Break;
         end;
-      if f <> -1 then break
+      if lFound <> -1 then
+        Break;
     end;
-    if f = -1 then
-      result := SSL_TLSEXT_ERR_NOACK
-    else if f > 0 then // first one should be the main certificate
-      SslSetSslCtx(ASSL, arg[f].CTX.CTX);
+    if lFound = -1 then
+      Result := SSL_TLSEXT_ERR_NOACK
+    else if lFound > 0 then // first one should be the main certificate
+      if SslSetSslCtx(aSSL, lHosts[lFound].CTX.CTX) = nil then
+        Result := SSL_TLSEXT_ERR_ALERT_FATAL;
+  finally
+    Pointer(lHosts) := nil;
   end;
 end;
 
@@ -373,6 +387,9 @@ end;
 
 Destructor TSSLContext.Destroy;
 begin
+  if Length(FSNIHosts)>0 then
+    SetTlsextServernameArg(nil);
+  FSNIHosts:=nil;
   SslCtxFree(FCTX);
   inherited Destroy;
 end;
@@ -675,8 +692,9 @@ end;
 
 procedure TSSLContext.ActivateServerSNI(ATlsextcbp: TTlsExtCtx);
 begin
+  FSNIHosts := ATlsextcbp;
   SetTlsextServernameCallback(@SelectSNIContextCallback);
-  SetTlsextServernameArg(Pointer(ATlsextcbp));
+  SetTlsextServernameArg(Pointer(FSNIHosts));
 end;
 
 procedure TSSLContext.SetEcdhAuto(const onoff: boolean);

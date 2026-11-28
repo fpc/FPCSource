@@ -1,5 +1,6 @@
 { TSSLContext.ActivateServerSNI with three virtual hosts on a local TLS server: certificate served and
-  acknowledgement of the SNI name per client name. Exit code is the number of failed checks. }
+  acknowledgement of the SNI name per client name, with a host table released by the caller.
+  Exit code is the number of failed checks. }
 program tsniserver;
 
 {$mode objfpc}{$H+}
@@ -20,7 +21,9 @@ type
   TVHostServer = class(TThread)
   private
     FServer: TInetServer;
-    FHosts: TTlsExtCtx;
+    FContexts: array of TSSLContext;
+    FDecoy: TTlsExtCtx;
+    procedure ActivateHosts;
     procedure DoConnect(Sender: TObject; aData: TSocketStream);
   protected
     procedure Execute; override;
@@ -71,22 +74,19 @@ end;
 
 { TVHostServer }
 
-constructor TVHostServer.Create(aPort: Word);
-
 const
-  Names: array[0..2] of String = ('main.test','alpha.test','beta.test');
+  HostNames: array[0..2] of String = ('main.test','alpha.test','beta.test');
+
+constructor TVHostServer.Create(aPort: Word);
 
 var
   I: Integer;
 
 begin
-  SetLength(FHosts,Length(Names));
-  for I:=0 to High(Names) do
-    begin
-    FHosts[I].CTX:=CreateHostContext(Names[I]);
-    FHosts[I].domains:=[Names[I]];
-    end;
-  FHosts[0].CTX.ActivateServerSNI(FHosts);
+  SetLength(FContexts,Length(HostNames));
+  for I:=0 to High(HostNames) do
+    FContexts[I]:=CreateHostContext(HostNames[I]);
+  ActivateHosts;
   FServer:=TInetServer.Create('127.0.0.1',aPort);
   FServer.ReuseAddress:=True;
   FServer.OnConnect:=@DoConnect;
@@ -106,9 +106,35 @@ begin
     WaitFor;
     end;
   FServer.Free;
-  for I:=0 to High(FHosts) do
-    FHosts[I].CTX.Free;
+  for I:=High(FContexts) downto 0 do
+    FContexts[I].Free;
   inherited Destroy;
+end;
+
+
+// Installs the host table from a local variable that is released afterwards, then allocates a table of the
+// same size with the contexts of alpha.test and beta.test swapped
+procedure TVHostServer.ActivateHosts;
+
+var
+  lHosts: TTlsExtCtx;
+  I: Integer;
+
+begin
+  SetLength(lHosts,Length(HostNames));
+  for I:=0 to High(HostNames) do
+    begin
+    lHosts[I].CTX:=FContexts[I];
+    lHosts[I].domains:=[HostNames[I]];
+    end;
+  FContexts[0].ActivateServerSNI(lHosts);
+  lHosts:=nil;
+  SetLength(FDecoy,Length(HostNames));
+  for I:=0 to High(HostNames) do
+    begin
+    FDecoy[I].CTX:=FContexts[(3-I) mod 3];
+    FDecoy[I].domains:=[HostNames[I]];
+    end;
 end;
 
 
@@ -118,7 +144,7 @@ var
   lSSL: TSSL;
 
 begin
-  lSSL:=TSSL.Create(FHosts[0].CTX);
+  lSSL:=TSSL.Create(FContexts[0]);
   try
     lSSL.SetFd(aData.Handle);
     if lSSL.Accept=1 then
@@ -239,6 +265,7 @@ begin
     CheckHost('main.test','main.test',True);
     CheckHost('alpha.test','alpha.test',True);
     CheckHost('beta.test','beta.test',True);
+    CheckHost('ALPHA.Test','alpha.test',True);
     CheckHost('gamma.test','main.test',False);
     CheckHost('','main.test',False);
     CheckHost('beta.test','beta.test',True);
