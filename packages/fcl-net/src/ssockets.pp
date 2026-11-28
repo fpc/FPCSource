@@ -42,6 +42,10 @@ uses
   SysUtils, Classes, ctypes, sockets, fpsockets, tuples;
 {$ENDIF FPC_DOTTEDUNITS}
 
+Const
+  // Default TInetServer.HandshakeTimeout in milliseconds
+  DefaultHandshakeTimeout = 10000;
+
 type
 
   TSocketErrorType = (
@@ -292,6 +296,7 @@ type
   TInetServer = Class(TSocketServer)
   private
     FEndPoint: TEndPoint;
+    FHandshakeTimeout: Integer;
     function GetAddr:TAddressUnion;inline;
     function GetHost: string;
   Protected
@@ -309,6 +314,8 @@ type
     Property Port : Word Read FEndPoint.Second;
     Property NetworkAddress : TNetworkAddress Read FEndPoint.First;
     Property Host : string Read GetHost;
+    // Read/write timeout in milliseconds for the handler's Accept (the TLS handshake) of a new connection; 0 for none
+    Property HandshakeTimeout : Integer Read FHandshakeTimeout Write FHandshakeTimeout;
   end;
 
 {$ifdef Unix}
@@ -1522,6 +1529,7 @@ Var S : TFPSocket;
 
 begin
   FSocket.FD:=-1;
+  FHandshakeTimeout:=DefaultHandshakeTimeout;
   { The destructor frees the handler when the constructor raises. }
   FHandler:=AHandler;
   case aHost.AddressType of
@@ -1561,6 +1569,7 @@ function TInetServer.SocketToStream(const ASocket: TFPSocket): TSocketStream;
 Var
   H : TSocketHandler;
   ok : Boolean;
+  lTimeout : Integer;
   aClass : TServerSocketStreamClass;
 
   procedure ShutDownH;
@@ -1584,7 +1593,12 @@ begin
 
   ok:=false;
   try
+    lTimeout:=Result.IOTimeout;
+    if FHandshakeTimeout>0 then
+      Result.IOTimeout:=FHandshakeTimeout;
     ok:=H.Accept;
+    if ok and (FHandshakeTimeout>0) then
+      Result.IOTimeout:=lTimeout;
   finally
     if not ok then
       ShutDownH;
