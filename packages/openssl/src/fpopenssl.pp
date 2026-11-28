@@ -213,7 +213,7 @@ begin
     if f = -1 then
       result := SSL_TLSEXT_ERR_NOACK
     else if f > 1 then // first one should be the main certificate
-      SslSetSslCtx(ASSL, arg[f].CTX);
+      SslSetSslCtx(ASSL, arg[f].CTX.CTX);
   end;
   result := SSL_TLSEXT_ERR_OK;
 end;
