@@ -287,12 +287,12 @@ unit hlcgobj;
 
           { bit test instructions }
           procedure a_bit_test_reg_reg_reg(list : TAsmList; bitnumbersize,valuesize,destsize: tdef;bitnumber,value,destreg: tregister); virtual;
-          procedure a_bit_test_const_ref_reg(list: TAsmList; fromsize, destsize: tdef; bitnumber: aint; const ref: treference; destreg: tregister); virtual;
-          procedure a_bit_test_const_reg_reg(list: TAsmList; setregsize, destsize: tdef; bitnumber: aint; setreg, destreg: tregister); virtual;
-          procedure a_bit_test_const_subsetreg_reg(list: TAsmList; fromsubsetsize, destsize: tdef; bitnumber: aint; const setreg: tsubsetregister; destreg: tregister); virtual;
+          procedure a_bit_test_const_ref_reg(list: TAsmList; fromsize, destsize: tdef; bitnumber: tcgint; const ref: treference; destreg: tregister); virtual;
+          procedure a_bit_test_const_reg_reg(list: TAsmList; setregsize, destsize: tdef; bitnumber: tcgint; setreg, destreg: tregister); virtual;
+          procedure a_bit_test_const_subsetreg_reg(list: TAsmList; fromsubsetsize, destsize: tdef; bitnumber: tcgint; const setreg: tsubsetregister; destreg: tregister); virtual;
           procedure a_bit_test_reg_ref_reg(list: TAsmList; bitnumbersize, refsize, destsize: tdef; bitnumber: tregister; const ref: treference; destreg: tregister); virtual;
           procedure a_bit_test_reg_loc_reg(list: TAsmList; bitnumbersize, locsize, destsize: tdef; bitnumber: tregister; const loc: tlocation; destreg: tregister);virtual;
-          procedure a_bit_test_const_loc_reg(list: TAsmList; locsize, destsize: tdef; bitnumber: aint; const loc: tlocation; destreg: tregister);virtual;
+          procedure a_bit_test_const_loc_reg(list: TAsmList; locsize, destsize: tdef; bitnumber: tcgint; const loc: tlocation; destreg: tregister);virtual;
 
           { bit set/clear instructions }
           procedure a_bit_set_reg_reg(list : TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber,dest: tregister); virtual;
@@ -1924,7 +1924,7 @@ implementation
       a_load_reg_reg(list,valuesize,destsize,tmpvalue,destreg);
     end;
 
-  procedure thlcgobj.a_bit_test_const_ref_reg(list: TAsmList; fromsize, destsize: tdef; bitnumber: aint; const ref: treference; destreg: tregister);
+  procedure thlcgobj.a_bit_test_const_ref_reg(list: TAsmList; fromsize, destsize: tdef; bitnumber: tcgint; const ref: treference; destreg: tregister);
     var
       href: treference;
     begin
@@ -1933,12 +1933,12 @@ implementation
       a_load_subsetref_reg(list,u8inttype,destsize,get_bit_const_ref_sref(bitnumber,fromsize,href),destreg);
     end;
 
-  procedure thlcgobj.a_bit_test_const_reg_reg(list: TAsmList; setregsize, destsize: tdef; bitnumber: aint; setreg, destreg: tregister);
+  procedure thlcgobj.a_bit_test_const_reg_reg(list: TAsmList; setregsize, destsize: tdef; bitnumber: tcgint; setreg, destreg: tregister);
     begin
       a_load_subsetreg_reg(list,setregsize,destsize,get_bit_const_reg_sreg(setregsize,bitnumber,setreg),destreg);
     end;
 
-  procedure thlcgobj.a_bit_test_const_subsetreg_reg(list: TAsmList; fromsubsetsize, destsize: tdef; bitnumber: aint; const setreg: tsubsetregister; destreg: tregister);
+  procedure thlcgobj.a_bit_test_const_subsetreg_reg(list: TAsmList; fromsubsetsize, destsize: tdef; bitnumber: tcgint; const setreg: tsubsetregister; destreg: tregister);
     var
       tmpsreg: tsubsetregister;
     begin
@@ -1997,7 +1997,7 @@ implementation
       end;
     end;
 
-  procedure thlcgobj.a_bit_test_const_loc_reg(list: TAsmList; locsize, destsize: tdef; bitnumber: aint; const loc: tlocation; destreg: tregister);
+  procedure thlcgobj.a_bit_test_const_loc_reg(list: TAsmList; locsize, destsize: tdef; bitnumber: tcgint; const loc: tlocation; destreg: tregister);
     begin
       case loc.loc of
         LOC_REFERENCE,LOC_CREFERENCE:

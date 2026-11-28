@@ -67,7 +67,7 @@ interface
       set to LOC_CREGISTER/LOC_CFPUREGISTER/... }
     procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation;def: tdef);
 
-    procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
+    procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: asizeint);
 
 
     procedure alloc_proc_symbol(pd: tprocdef);
@@ -380,7 +380,7 @@ implementation
 *****************************************************************************}
 
 
-    procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
+    procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: asizeint);
       var
         tmpreg: tregister;
       begin

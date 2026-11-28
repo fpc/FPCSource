@@ -44,7 +44,7 @@ interface
        { tcginnode }
 
        tcginnode = class(tinnode)
-         procedure in_smallset(opdef: tdef; setbase: aint); virtual;
+         procedure in_smallset(opdef: tdef; setbase: asizeint); virtual;
 
          function pass_1: tnode;override;
          procedure pass_generate_code;override;
@@ -225,7 +225,7 @@ implementation
       end;
 
 
-    procedure tcginnode.in_smallset(opdef: tdef; setbase: aint);
+    procedure tcginnode.in_smallset(opdef: tdef; setbase: asizeint);
       begin
         { location is always LOC_REGISTER }
         location_reset(location, LOC_REGISTER, def_cgsize(resultdef));
@@ -282,7 +282,7 @@ implementation
     procedure tcginnode.pass_generate_code;
        var
          adjustment,
-         setbase    : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
+         setbase    : asizeint;
          l, l2      : tasmlabel;
          hr,
          pleftreg   : tregister;

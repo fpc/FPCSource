@@ -322,7 +322,7 @@ interface
       var
         tmpreg : tregister;
         mask,
-        setbase : aint;
+        setbase : asizeint;
         cgop    : TOpCg;
       begin
         if nodetype<>addn then

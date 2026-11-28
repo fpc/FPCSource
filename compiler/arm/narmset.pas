@@ -37,7 +37,7 @@ interface
 
        tarminnode = class(tcginnode)
          function pass_1: tnode; override;
-         procedure in_smallset(opdef: tdef; setbase: aint); override;
+         procedure in_smallset(opdef: tdef; setbase: asizeint); override;
        end;
 
       tarmcasenode = class(tcgcasenode)
@@ -79,7 +79,7 @@ implementation
           end;
       end;
 
-    procedure tarminnode.in_smallset(opdef: tdef; setbase: aint);
+    procedure tarminnode.in_smallset(opdef: tdef; setbase: asizeint);
       var
         so : tshifterop;
         hregister : tregister;
