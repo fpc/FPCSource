@@ -92,12 +92,14 @@ implementation
 uses
   FpImage.Canvas,
   FpPdf.Ttf,
-  FpPdf.Ttf.Parser;
+  FpPdf.Ttf.Parser,
+  System.Math;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   FPCanvas,
   fpTTF,
-  fpparsettf;
+  fpparsettf,
+  math;
 {$ENDIF FPC_DOTTEDUNITS}
 
 
@@ -191,6 +193,8 @@ procedure TFPReportExportPDF.RenderFrame(const APage: TPDFPage; const ABand: TFP
   const AFrame: TFPReportFrame; const APos: TPDFCoord; const AWidth, AHeight: TFPReportUnits);
 var
   bStroke, bFill: boolean;
+  lBody: TPDFCoord;
+  lBodyWidth, lBodyHeight, lShadow: TFPReportUnits;
 begin
   bStroke := AFrame.Color <> clNone;
   bFill := AFrame.BackgroundColor <> clNone;
@@ -211,11 +215,44 @@ begin
       APage.SetPenStyle(ppsSolid);
   end;
 
-  if (AFrame.Shape = fsRectangle) and (bStroke or bFill) then
+  if (AFrame.Shape = fsShadow) and (bStroke or bFill) then
+  begin
+    lShadow := Min(cFrameShadowWidth, Min(AWidth, AHeight) / 2);
+    if bStroke then
+      APage.SetColor(AFrame.Color, False)
+    else
+      APage.SetColor(cFrameShadowColor, False);
+    APage.DrawRect(APos.X + AWidth - lShadow, APos.Y, lShadow, AHeight - lShadow, 0, True, False);
+    APage.DrawRect(APos.X + lShadow, APos.Y, AWidth - 2 * lShadow, lShadow, 0, True, False);
+    lBody.X := APos.X;
+    lBody.Y := APos.Y - lShadow;
+    lBodyWidth := AWidth - lShadow;
+    lBodyHeight := AHeight - lShadow;
+  end
+  else
+  begin
+    lBody := APos;
+    lBodyWidth := AWidth;
+    lBodyHeight := AHeight;
+  end;
+
+  if (AFrame.Shape in [fsRectangle, fsDoubleRect, fsShadow]) and (bStroke or bFill) then
   begin
     APage.SetColor(AFrame.BackgroundColor, False); // fill color
     APage.SetColor(AFrame.Color, True); // stroke color
-    APage.DrawRect(APos.X, APos.Y, AWidth, AHeight, AFrame.Width, bFill, bStroke);
+    APage.DrawRect(lBody.X, lBody.Y, lBodyWidth, lBodyHeight, AFrame.Width, bFill, bStroke);
+    if (AFrame.Shape = fsDoubleRect) and bStroke
+       and (2 * cFrameDoubleGap < AWidth) and (2 * cFrameDoubleGap < AHeight) then
+      APage.DrawRect(APos.X + cFrameDoubleGap, APos.Y - cFrameDoubleGap,
+        AWidth - 2 * cFrameDoubleGap, AHeight - 2 * cFrameDoubleGap, AFrame.Width, False, True);
+  end;
+
+  if (AFrame.Shape = fsRoundedRect) and (bStroke or bFill) then
+  begin
+    APage.SetColor(AFrame.BackgroundColor, False);
+    APage.SetColor(AFrame.Color, True);
+    APage.DrawRoundedRect(APos.X, APos.Y, AWidth, AHeight,
+      Min(cFrameCornerRadius, Min(AWidth, AHeight) / 2), AFrame.Width, bFill, bStroke);
   end;
 
   if AFrame.Shape = fsNone then

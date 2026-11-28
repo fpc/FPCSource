@@ -688,6 +688,7 @@ Var
   Style : TStrings;
   L : TFPreportLayout;
   FL : TFPReportFrameLine;
+  lShadowColor : TFPReportColor;
 
 begin
   Style:=TStringList.Create;
@@ -707,11 +708,32 @@ begin
     if (seFrame in StyleElements) and (AElement.Frame.Color<>clNone) then
       begin
       for FL in TFPReportFrameLine do
-        if (AElement.Frame.Shape=fsRectangle) or (FL in AElement.Frame.Lines) then
+        if (AElement.Frame.Shape<>fsNone) or (FL in AElement.Frame.Lines) then
           begin
           Style.Add(ColorToStyle(Format('border-%s-color',[FNames[FL]]),AElement.Frame.Color));
-          Style.Add(Format('border-%s-width: %dpx;',[FNames[FL],AElement.Frame.Width]));
-          Style.Add(Format('border-%s-style: %s;',[FNames[FL],FStyles[AElement.Frame.Pen]]));
+          if AElement.Frame.Shape=fsDoubleRect then
+            begin
+            Style.Add(Format('border-%s-width: %dpx;',[FNames[FL],2*AElement.Frame.Width+mmToPixels(cFrameDoubleGap)]));
+            Style.Add(Format('border-%s-style: double;',[FNames[FL]]));
+            end
+          else
+            begin
+            Style.Add(Format('border-%s-width: %dpx;',[FNames[FL],AElement.Frame.Width]));
+            Style.Add(Format('border-%s-style: %s;',[FNames[FL],FStyles[AElement.Frame.Pen]]));
+            end;
+          end;
+      end;
+    if (seFrame in StyleElements) then
+      case AElement.Frame.Shape of
+        fsRoundedRect:
+          Style.Add(Format('border-radius: %dpx;',[mmToPixels(cFrameCornerRadius)]));
+        fsShadow:
+          begin
+          lShadowColor:=AElement.Frame.Color;
+          if lShadowColor=clNone then
+            lShadowColor:=cFrameShadowColor;
+          if (AElement.Frame.Color<>clNone) or (AElement.Frame.BackgroundColor<>clNone) then
+            Style.Add(Format('box-shadow: %0:dpx %0:dpx 0px %1:s;',[mmToPixels(cFrameShadowWidth),ColorToRGBString(lShadowColor,False)]));
           end;
       end;
     if AExtra<>'' then

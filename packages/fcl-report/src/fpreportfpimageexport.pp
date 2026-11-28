@@ -337,7 +337,8 @@ procedure TFPReportExportfpImage.RenderFrame(const ABand: TFPReportCustomBand; c
 
 var
   bStroke, bFill: boolean;
-  FR : TRect;
+  FR, lBody : TRect;
+  lShadow, lGap, lRadius : Integer;
 
 begin
   bStroke := AFrame.Color <> clNone;
@@ -348,19 +349,58 @@ begin
   Canvas.Pen.Style:=AFrame.Pen;
   Canvas.Pen.FPColor:=ColorToRGBTriple(AFrame.Color);
   Canvas.Pen.Width:=AFrame.Width;
-  if (AFrame.Shape=fsRectangle) and (bStroke or bFill) then
+  lBody:=FR;
+  if AFrame.Shape=fsShadow then
+    begin
+    lShadow:=mmToPixels(cFrameShadowWidth);
+    if lShadow>(FR.Right-FR.Left) div 2 then
+      lShadow:=(FR.Right-FR.Left) div 2;
+    if lShadow>(FR.Bottom-FR.Top) div 2 then
+      lShadow:=(FR.Bottom-FR.Top) div 2;
+    Dec(lBody.Right,lShadow);
+    Dec(lBody.Bottom,lShadow);
+    Canvas.Brush.Style:=bsSolid;
+    if bStroke then
+      Canvas.Brush.FPColor:=ColorToRGBTriple(AFrame.Color)
+    else
+      Canvas.Brush.FPColor:=ColorToRGBTriple(cFrameShadowColor);
+    FCanvas.FillRect(lBody.Right,FR.Top+lShadow,FR.Right,FR.Bottom);
+    FCanvas.FillRect(FR.Left+lShadow,lBody.Bottom,lBody.Right,FR.Bottom);
+    end;
+  if AFrame.Shape in [fsRectangle,fsDoubleRect,fsShadow] then
     begin
     if bFill then
       begin
       Canvas.Brush.Style:=bsSolid;
       Canvas.Brush.FPColor:=ColorToRGBTriple(AFrame.BackgroundColor);
-      FCanvas.FillRect(FR);
+      FCanvas.FillRect(lBody);
       end;
     if bStroke then
       begin
       Canvas.Brush.Style:=bsClear;
-      FCanvas.Rectangle(FR);
+      FCanvas.Rectangle(lBody);
+      lGap:=mmToPixels(cFrameDoubleGap);
+      if (AFrame.Shape=fsDoubleRect) and (2*lGap<FR.Right-FR.Left) and (2*lGap<FR.Bottom-FR.Top) then
+        FCanvas.Rectangle(FR.Left+lGap,FR.Top+lGap,FR.Right-lGap,FR.Bottom-lGap);
       end;
+    end;
+  if AFrame.Shape=fsRoundedRect then
+    begin
+    lRadius:=mmToPixels(cFrameCornerRadius);
+    if lRadius>(FR.Right-FR.Left) div 2 then
+      lRadius:=(FR.Right-FR.Left) div 2;
+    if lRadius>(FR.Bottom-FR.Top) div 2 then
+      lRadius:=(FR.Bottom-FR.Top) div 2;
+    if bFill then
+      begin
+      Canvas.Brush.Style:=bsSolid;
+      Canvas.Brush.FPColor:=ColorToRGBTriple(AFrame.BackgroundColor);
+      end
+    else
+      Canvas.Brush.Style:=bsClear;
+    if not bStroke then
+      Canvas.Pen.Style:=psClear;
+    FCanvas.RoundRect(FR,2*lRadius,2*lRadius);
     end;
   if (AFrame.Shape=fsNone) and bStroke then
     begin

@@ -274,6 +274,14 @@ const
   cCMperInch = 2.54;
   cMMperCM = 10;
   cEllipsis : UnicodeChar = #$2026; // '…';
+  // Corner radius of a fsRoundedRect frame, in mm
+  cFrameCornerRadius = 2.0;
+  // Distance between the outer and the inner rectangle of a fsDoubleRect frame, in mm
+  cFrameDoubleGap = 1.0;
+  // Width of the shadow at the right and bottom of a fsShadow frame, in mm
+  cFrameShadowWidth = 1.5;
+  // Color of the shadow of a fsShadow frame without frame color
+  cFrameShadowColor = clGray;
   DefaultBandNames : Array[TFPReportBandType] of string
     = ('Unknown','Page Header','Report Title','Column Header', 'Data Header','Group Header','Data','Group Footer',
        'Data Footer','Column Footer','Report Summary','PageFooter','Child');
