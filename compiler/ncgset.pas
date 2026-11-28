@@ -296,6 +296,11 @@ implementation
          use_small  : boolean;
          i,numparts : byte;
          needslabel : Boolean;
+{$if defined(cpu8bitalu)}
+         leftlow,
+         lefthigh,
+         valuerange : TConstExprInt;
+{$endif defined(cpu8bitalu)}
        begin
          l2:=nil;
 
@@ -306,8 +311,13 @@ implementation
 
          orgopsize := def_cgsize(left.resultdef);
 {$if defined(cpu8bitalu)}
-         if (tsetdef(right.resultdef).setbase>=-128) and
-           (tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase+1<=256) then
+         { the operation size must cover all values of left and all elements of
+           the set: left is truncated to it, and both the comparisons with the
+           elements (jumps) and the subtraction of the set base are done in it,
+           so else values of left could alias set elements }
+         getrange(left.resultdef,leftlow,lefthigh);
+         valuerange:=max(lefthigh,tsetdef(right.resultdef).setmax)-min(leftlow,tsetdef(right.resultdef).setbase);
+         if valuerange<256 then
            begin
              uopsize := OS_8;
              uopdef := u8inttype;
@@ -327,8 +337,7 @@ implementation
 { this should be also enabled for 16 bit CPUs, however, I have no proper testing facility for 16 bit, my
   testing results using Dosbox are no reliable }
 { $if defined(cpu8bitalu) or defined(cpu16bitalu)}
-         else if (tsetdef(right.resultdef).setbase>=-32768) and
-           (tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase+1<=65536) then
+         else if valuerange<65536 then
            begin
              uopsize := OS_16;
              uopdef := u16inttype;
