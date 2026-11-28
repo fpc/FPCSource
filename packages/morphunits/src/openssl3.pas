@@ -771,7 +771,7 @@ end;
 
 procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: TSSLCTXVerifyCallback);
 begin
-  SSL_CTX_set_verify(ctx, mode, @arg2);
+  SSL_CTX_set_verify(ctx, mode, Pointer(arg2));
 end;
 
 function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt; overload;
