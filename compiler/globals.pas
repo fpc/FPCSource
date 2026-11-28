@@ -1678,7 +1678,13 @@ implementation
         if ([m_tp7,m_delphi]*current_settings.modeswitches)<>[] then
           result:=255
         else
+{$ifdef jvm}
+          { the JVM code generator handles only set elements up to 255
+            (see e.g. tjvmsetconstnode.find_single_elements_run) }
+          result:=255;
+{$else jvm}
           result:=65535;
+{$endif jvm}
       end;
 
 {****************************************************************************

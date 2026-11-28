@@ -178,6 +178,12 @@ if [ $? -eq 0 ]; then
 else
   echo " ** Compilation failed as expected"
 fi
+$PPC -O2 -g -B -Sa tset256
+if [ $? -eq 0 ]; then
+  echo " ** Should have failed compilation"
+else
+  echo " ** Compilation failed as expected"
+fi
 set -e
 $PPC -O2 -g -B -Sa tptrdynarr
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tptrdynarr
